@@ -25,3 +25,13 @@ This document is the repository's permanent institutional memory. Whenever an un
   3. Listen to native CCAI events (`chat-messenger-close`, `chat-messenger-dialog-toggled`, `chat-messenger-dialog-closed`) to sync window collapse state cleanly back to the lower-left bubble launcher.
   4. Inject an override style into `chat-messenger.shadowRoot` to ensure any internal Google `.chat-bubble-default-wrapper` is hidden or repositioned to the left.
 
+### [2026-10-01] Learning 4: Idempotent Event Binding for Asynchronous Third-Party Web Components
+- **Issue**: Google CCAI's SDK script loads asynchronously and fires `chat-messenger-loaded` after DOMContentLoaded. Binding event listeners in a controller function called across both `DOMContentLoaded` and `chat-messenger-loaded` caused duplicate click event handlers on the launcher button. On click, the first handler toggled the chat open and the second immediately toggled it closed in the same event dispatch loop, rendering the launcher non-responsive.
+- **Mitigation**:
+  1. Guard controller setup with an explicit idempotency flag (`window.__cxasBubbleControllerInitialized`) so DOM listeners and initial state configurations execute strictly once.
+  2. Declare the global API functions (`openCxasChat`, `closeCxasChat`, `toggleCxasChat`) unconditionally on `window` immediately so external call sites never encounter race conditions.
+  3. Keep the asynchronous SDK event listener (`chat-messenger-loaded`) strictly focused on context registration (`chatSdk.registerContext`) and shadow DOM patching.
+  4. Ensure `chat-toggle-dialog-button` (fullscreen mode toggler) is not conflated with widget close; only explicit close events (`chat-messenger-close`) should close the chat window.
+- **Reference**: [GitHub Issue #7](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/7)
+
+

@@ -18,6 +18,101 @@
 
     <!-- CX Agent Studio Context Registration and Lower-Left Chat Controller -->
     <script>
+      // 1. Unconditionally define the global chat API immediately
+      window.openCxasChat = function(promptText) {
+        const cm = document.querySelector("chat-messenger");
+        const launcher = document.getElementById("cxas-bubble-launcher");
+        if (cm) {
+          cm.classList.remove("dsc-chat-closed");
+        }
+        if (launcher) {
+          launcher.setAttribute("aria-expanded", "true");
+        }
+        if (promptText && cm) {
+          const input = cm.querySelector("chat-messenger-user-input");
+          if (input && typeof input.setInput === "function") {
+            input.setInput(promptText);
+          }
+        }
+      };
+
+      window.closeCxasChat = function() {
+        const cm = document.querySelector("chat-messenger");
+        const launcher = document.getElementById("cxas-bubble-launcher");
+        if (cm) {
+          cm.classList.add("dsc-chat-closed");
+        }
+        if (launcher) {
+          launcher.setAttribute("aria-expanded", "false");
+        }
+      };
+
+      window.toggleCxasChat = function() {
+        const cm = document.querySelector("chat-messenger");
+        if (!cm) return;
+        if (cm.classList.contains("dsc-chat-closed")) {
+          window.openCxasChat();
+        } else {
+          window.closeCxasChat();
+        }
+      };
+
+      // 2. Initialize controller exactly once
+      function initCxasBubbleController() {
+        const cm = document.querySelector("chat-messenger");
+        const launcher = document.getElementById("cxas-bubble-launcher");
+        if (!cm || !launcher) return;
+
+        if (!window.__cxasBubbleControllerInitialized) {
+          window.__cxasBubbleControllerInitialized = true;
+
+          // Set initial closed state
+          cm.classList.add("dsc-chat-closed");
+          launcher.setAttribute("aria-expanded", "false");
+
+          // Bind single click listener
+          launcher.addEventListener("click", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.toggleCxasChat();
+          });
+
+          // Close on titlebar close button event
+          cm.addEventListener("chat-messenger-close", function() {
+            window.closeCxasChat();
+          });
+        }
+
+        // Prevent duplicate right-side bubbles if internal wrapper spawns in shadowRoot
+        function patchShadow() {
+          if (cm.shadowRoot && !cm.shadowRoot.querySelector("#dsc-shadow-fix")) {
+            const shadowStyle = document.createElement("style");
+            shadowStyle.id = "dsc-shadow-fix";
+            shadowStyle.textContent = `
+              .chat-bubble-default-wrapper {
+                display: none !important;
+                visibility: hidden !important;
+                pointer-events: none !important;
+              }
+            `;
+            cm.shadowRoot.appendChild(shadowStyle);
+          }
+        }
+
+        patchShadow();
+        if (window.customElements && window.customElements.whenDefined) {
+          window.customElements.whenDefined("chat-messenger").then(patchShadow);
+        }
+      }
+
+      // Safely run lifecycle initialization
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", initCxasBubbleController);
+      } else {
+        initCxasBubbleController();
+      }
+      window.addEventListener("chat-messenger-loaded", initCxasBubbleController);
+
       // Register CES context upon chat-messenger SDK load
       window.addEventListener("chat-messenger-loaded", () => {
         if (window.chatSdk && window.chatSdk.registerContext && window.chatSdk.prebuilts) {
@@ -28,89 +123,6 @@
           );
         }
       });
-
-      // Unified Lower-Left Bubble Controller
-      (function() {
-        function initChatController() {
-          const cm = document.querySelector("chat-messenger");
-          const launcher = document.getElementById("cxas-bubble-launcher");
-          if (!cm || !launcher) return;
-
-          // Default state: closed (bubble visible in lower-left)
-          cm.classList.add("dsc-chat-closed");
-          launcher.setAttribute("aria-expanded", "false");
-
-          window.openCxasChat = function(promptText) {
-            cm.classList.remove("dsc-chat-closed");
-            launcher.setAttribute("aria-expanded", "true");
-            if (promptText) {
-              const input = cm.querySelector("chat-messenger-user-input");
-              if (input && typeof input.setInput === "function") {
-                input.setInput(promptText);
-              }
-            }
-          };
-
-          window.closeCxasChat = function() {
-            cm.classList.add("dsc-chat-closed");
-            launcher.setAttribute("aria-expanded", "false");
-          };
-
-          window.toggleCxasChat = function() {
-            if (cm.classList.contains("dsc-chat-closed")) {
-              window.openCxasChat();
-            } else {
-              window.closeCxasChat();
-            }
-          };
-
-          launcher.addEventListener("click", () => {
-            window.toggleCxasChat();
-          });
-
-          // Google CCAI Messenger events
-          cm.addEventListener("chat-messenger-close", () => {
-            window.closeCxasChat();
-          });
-
-          window.addEventListener("chat-messenger-dialog-closed", () => {
-            window.closeCxasChat();
-          });
-
-          window.addEventListener("chat-messenger-dialog-toggled", (e) => {
-            if (e.detail && typeof e.detail.expanded === "boolean") {
-              if (e.detail.expanded) {
-                window.openCxasChat();
-              } else {
-                window.closeCxasChat();
-              }
-            }
-          });
-
-          // Prevent duplicate right-side bubbles if internal wrapper spawns
-          if (cm.shadowRoot) {
-            const shadowStyle = document.createElement("style");
-            shadowStyle.textContent = `
-              .chat-bubble-default-wrapper {
-                position: fixed !important;
-                left: 24px !important;
-                bottom: 24px !important;
-                right: auto !important;
-                display: none !important;
-              }
-            `;
-            cm.shadowRoot.appendChild(shadowStyle);
-          }
-        }
-
-        if (document.readyState === "loading") {
-          document.addEventListener("DOMContentLoaded", initChatController);
-        } else {
-          initChatController();
-        }
-
-        window.addEventListener("chat-messenger-loaded", initChatController);
-      })();
     </script>
 
     <!-- Lower-Left Floating Chat Bubble Launcher -->
