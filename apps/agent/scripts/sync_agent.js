@@ -143,44 +143,17 @@ ${wf.instructions.trim().split('\n').map(l => '        ' + l).join('\n')}
     <context>You are the official Customer Experience Virtual Agent for Dollar Shave Club. You assist members with order tracking, Starter Set & Restock Box scheduling, lost shipment replacements, address updates, and secure payment updates.</context>
   </persona>
 
+  <tool_guidelines>
+    <rule>MANDATORY: Always call tool \`trackOrder\` whenever a customer provides an order number (e.g. DSC-8832, DSC-9104, DSC-7721) or email address (e.g. alex@example.com, jamie@example.com, chris@example.com) to retrieve live tracking, delivery ETA, carrier, and subscription Restock Box schedule from the backend system. Never guess or hallucinate order details.</rule>
+    <rule>MANDATORY: Always call tool \`updateShippingAddress\` when a customer provides an updated shipping address.</rule>
+    <rule>MANDATORY: Always call tool \`createReplacementOrder\` to ship a free replacement for lost or damaged goods.</rule>
+    <rule>MANDATORY: Always call tool \`delayRestockBox\` when a customer asks to delay or push their next Restock Box billing date.</rule>
+    <rule>MANDATORY: Always call tool \`sendSecurePaymentLink\` when payment updates are needed.</rule>
+  </tool_guidelines>
+
   <core_workflows>
 ${workflowsXml}
   </core_workflows>
-
-  <mock_database>
-    <customer id="1">
-      <name>Alex Vance</name>
-      <email>alex@example.com</email>
-      <order_number>DSC-8832</order_number>
-      <status>In Transit</status>
-      <tracking_number>1Z99999999999999</tracking_number>
-      <eta>Tomorrow, by 8 PM</eta>
-      <next_bill_date>October 15, 2026</next_bill_date>
-      <subscription>Executive Starter Set -> Full Restock Box (Bi-monthly)</subscription>
-      <notes>Starter set trial delivered 1 week ago. First full-size Restock Box ships 2 weeks later so customer never runs out of blades.</notes>
-    </customer>
-    <customer id="2">
-      <name>Jamie Cole</name>
-      <email>jamie@example.com</email>
-      <order_number>DSC-9104</order_number>
-      <status>Delayed / Lost in Transit</status>
-      <tracking_number>9400111122223333</tracking_number>
-      <last_carrier_scan>4 days ago (No movement)</last_carrier_scan>
-      <current_address>456 Oak Rd, Seattle WA 98101</current_address>
-      <subscription>4-Blade Club</subscription>
-      <policy>Carrier scan gap > 4 days qualifies for immediate free replacement. Address can be updated before reshipment.</policy>
-    </customer>
-    <customer id="3">
-      <name>Chris Wright</name>
-      <email>chris@example.com</email>
-      <order_number>DSC-7721</order_number>
-      <status>Delivered</status>
-      <damaged_item>Dr. Carver's Easy Shave Butter (6 oz) - Exploded in box</damaged_item>
-      <next_bill_date>Tomorrow</next_bill_date>
-      <subscription>Shave Butter + 6-Blade Club</subscription>
-      <policy>Replace damaged product free of charge (ships in 24 hours). Billing update required tomorrow: never take credit cards in chat; send secure Shop Pay link via SMS and email.</policy>
-    </customer>
-  </mock_database>
 
   <guardrails>
 ${guardrailsXml}
@@ -197,7 +170,16 @@ ${guardrailsXml}
 
   if (dscToolset?.name) {
     updateFields.push('toolsets');
-    patchPayload.toolsets = [{ toolset: dscToolset.name }];
+    patchPayload.toolsets = [{
+      toolset: dscToolset.name,
+      toolIds: [
+        'trackOrder',
+        'updateShippingAddress',
+        'createReplacementOrder',
+        'delayRestockBox',
+        'sendSecurePaymentLink'
+      ]
+    }];
   }
 
   const patchUrl = `https://ces.googleapis.com/v1/${rootAgentName}?updateMask=${updateFields.join(',')}`;

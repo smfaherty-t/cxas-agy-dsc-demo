@@ -58,14 +58,23 @@ This document is the repository's permanent institutional memory. Whenever an un
   2. Ensure the app `displayName` matches the official brand name (`Dollar Shave Club`).
   3. Ensure the Console location dropdown is set to `us` (United States multi-region) or `All locations` when viewing apps.
 
-### [2026-10-01] Learning 8: CX Agent Studio External Tool Integration Requires OpenAPI Toolsets (`openApiToolset`)
+### [2026-10-01] Learning 8: CX Agent Studio External Tool Integration Requires OpenAPI Toolsets (`openApiToolset`) with Explicit `toolIds`
 - **Issue**:
   1. Attempting to create individual tools of type `OpenApiTool` via `POST .../apps/{appId}/tools` is rejected by Customer Engagement Suite (CES) API with `Creating tools of type OpenApiTool is not supported. Please use OpenApi Toolsets instead.`.
-  2. Without an OpenAPI Toolset registered on the app and attached to the root agent (`agent.toolsets: [{ toolset: toolsetName }]`), the virtual agent cannot call the backend Cloud Run API to perform live order tracking, address updates, or replacement requests.
+  2. When attaching an `openApiToolset` to an `Agent` (`agent.toolsets`), if `toolIds` is omitted or empty, CES assigns zero tools to the agent. The agent remains unaware of the API endpoints and cannot invoke them.
+  3. If mock data is embedded directly in prompt context (`<mock_database>`), the LLM may answer from context or hallucinate instead of executing API tool calls.
 - **Mitigation**:
   1. Register external APIs using the `toolsets` resource endpoint: `POST /v1/projects/{project}/locations/{location}/apps/{app}/toolsets` with payload `{ displayName: "...", openApiToolset: { openApiSchema: JSON.stringify(spec) } }`.
-  2. Attach the created toolset to the agent using the `toolsets` array of `AgentToolset` objects: `agent.toolsets = [{ toolset: toolsetName }]`.
-  3. Automate toolset creation, schema updates, agent attachment, version snapshotting, and deployment updating in `apps/agent/scripts/sync_agent.js`.
+  2. Attach the created toolset to the agent using the `Agent.toolsets` array of `AgentToolset` objects with explicit `toolIds` corresponding to the OpenAPI `operationId`s:
+     ```json
+     {
+       "toolset": "projects/.../locations/.../apps/.../toolsets/...",
+       "toolIds": ["trackOrder", "updateShippingAddress", "createReplacementOrder", "delayRestockBox", "sendSecurePaymentLink"]
+     }
+     ```
+  3. Include strict mandatory tool invocation rules in `<tool_guidelines>` within the agent prompt so the model consistently executes the registered tools.
+  4. Always snapshot a new version and update the deployment after patching agent toolsets.
+
 
 
 
