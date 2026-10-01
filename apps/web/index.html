@@ -113,14 +113,62 @@
       }
       window.addEventListener("chat-messenger-loaded", initCxasBubbleController);
 
-      // Register CES context upon chat-messenger SDK load
-      window.addEventListener("chat-messenger-loaded", () => {
-        if (window.chatSdk && window.chatSdk.registerContext && window.chatSdk.prebuilts) {
-          window.chatSdk.registerContext(
-            window.chatSdk.prebuilts.ces.createContext({
-              deploymentName: "projects/137470913560/locations/us/apps/82a19631-fe39-40fa-a593-60778d958407/deployments/93ef4da3-d0a5-4db9-b686-cb0f5a2537fb"
-            }),
-          );
+      // Register CES context and acquire public chat session token upon chat-messenger SDK load
+      async function initializeCxasChatContext() {
+        if (!window.chatSdk || !window.chatSdk.registerContext || !window.chatSdk.prebuilts) return;
+
+        const deploymentName = "projects/137470913560/locations/us/apps/82a19631-fe39-40fa-a593-60778d958407/deployments/93ef4da3-d0a5-4db9-b686-cb0f5a2537fb";
+
+        // Create context with tokenBroker enabled for CES
+        const ctx = window.chatSdk.prebuilts.ces.createContext({
+          deploymentName: deploymentName,
+          tokenBroker: {
+            enableTokenBroker: true
+          }
+        });
+        window.chatSdk.registerContext(ctx);
+
+        // Pre-fetch and assign token directly into context state and chat-messenger element
+        try {
+          const sessionId = ctx?.state?.sessionId || ("dfMessenger-" + Math.random().toString(36).substring(2));
+          if (ctx?.state && !ctx.state.sessionId) {
+            ctx.state.sessionId = sessionId;
+          }
+          const tokenRes = await fetch(`https://ces.googleapis.com/v1beta/projects/137470913560/locations/us/apps/82a19631-fe39-40fa-a593-60778d958407/sessions/${sessionId}:generateChatToken`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ deployment: deploymentName })
+          });
+          if (tokenRes.ok) {
+            const data = await tokenRes.json();
+            if (data.chatToken) {
+              if (ctx && ctx.state) {
+                ctx.state.accessToken = data.chatToken;
+                ctx.state.accessTokenExpiresAt = data.expireTime;
+              }
+              const cm = document.querySelector("chat-messenger");
+              if (cm) {
+                cm.accessToken = data.chatToken;
+              }
+              try {
+                sessionStorage.setItem("chat-messenger-access-token", data.chatToken);
+                if (data.expireTime) {
+                  sessionStorage.setItem("chat-messenger-access-token-expires-at", data.expireTime);
+                }
+              } catch (_) {}
+            }
+          }
+        } catch (e) {
+          console.warn("[CXAS] Pre-fetch token error:", e);
+        }
+      }
+
+      window.addEventListener("chat-messenger-loaded", initializeCxasChatContext);
+      window.addEventListener("chat-messenger-access-token-resolved", () => {
+        const cm = document.querySelector("chat-messenger");
+        const ctx = window.chatSdk?.getContext();
+        if (cm && ctx?.state?.accessToken) {
+          cm.accessToken = ctx.state.accessToken;
         }
       });
     </script>
