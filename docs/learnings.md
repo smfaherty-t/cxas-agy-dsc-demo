@@ -58,4 +58,15 @@ This document is the repository's permanent institutional memory. Whenever an un
   2. Ensure the app `displayName` matches the official brand name (`Dollar Shave Club`).
   3. Ensure the Console location dropdown is set to `us` (United States multi-region) or `All locations` when viewing apps.
 
+### [2026-10-01] Learning 8: CX Agent Studio External Tool Integration Requires OpenAPI Toolsets (`openApiToolset`)
+- **Issue**:
+  1. Attempting to create individual tools of type `OpenApiTool` via `POST .../apps/{appId}/tools` is rejected by Customer Engagement Suite (CES) API with `Creating tools of type OpenApiTool is not supported. Please use OpenApi Toolsets instead.`.
+  2. Without an OpenAPI Toolset registered on the app and attached to the root agent (`agent.toolsets: [{ toolset: toolsetName }]`), the virtual agent cannot call the backend Cloud Run API to perform live order tracking, address updates, or replacement requests.
+- **Mitigation**:
+  1. Register external APIs using the `toolsets` resource endpoint: `POST /v1/projects/{project}/locations/{location}/apps/{app}/toolsets` with payload `{ displayName: "...", openApiToolset: { openApiSchema: JSON.stringify(spec) } }`.
+  2. Attach the created toolset to the agent using the `toolsets` array of `AgentToolset` objects: `agent.toolsets = [{ toolset: toolsetName }]`.
+  3. Automate toolset creation, schema updates, agent attachment, version snapshotting, and deployment updating in `apps/agent/scripts/sync_agent.js`.
+
+
+
 

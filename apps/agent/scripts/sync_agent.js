@@ -68,7 +68,65 @@ async function sync() {
 
   const currentAgent = await agentRes.json();
 
-  // 3. Construct prompt XML from agent.yaml
+  // 3. Ensure OpenAPI Toolset exists
+  const toolsetsUrl = `https://ces.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/apps/${APP_ID}/toolsets`;
+  console.log(`Checking existing toolsets at ${toolsetsUrl}...`);
+  const toolsetsRes = await fetch(toolsetsUrl, {
+    headers: { 'Authorization': `Bearer ${token}` }
+  });
+  const existingToolsets = await toolsetsRes.json();
+  let dscToolset = existingToolsets.toolsets?.find(t => t.displayName === 'Dollar Shave Club API');
+
+  const BACKEND_API_URL = process.env.BACKEND_API_URL || 'https://cxas-dsc-api-z66d5k5ioa-uc.a.run.app';
+  console.log(`Fetching OpenAPI spec from backend: ${BACKEND_API_URL}/api/openapi.json...`);
+  const specRes = await fetch(`${BACKEND_API_URL}/api/openapi.json`);
+  const openApiSpec = await specRes.json();
+  openApiSpec.servers = [{ url: BACKEND_API_URL }];
+  const specString = JSON.stringify(openApiSpec);
+
+  if (!dscToolset) {
+    console.log(`Creating OpenAPI Toolset for Dollar Shave Club API...`);
+    const createToolsetRes = await fetch(toolsetsUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        displayName: 'Dollar Shave Club API',
+        openApiToolset: {
+          openApiSchema: specString
+        }
+      })
+    });
+    if (!createToolsetRes.ok) {
+      console.warn(`[WARN] Could not create toolset: ${createToolsetRes.status} ${await createToolsetRes.text()}`);
+    } else {
+      dscToolset = await createToolsetRes.json();
+      console.log(`[SUCCESS] Created toolset: ${dscToolset.name}`);
+    }
+  } else {
+    console.log(`Updating existing OpenAPI Toolset: ${dscToolset.name}...`);
+    const patchToolsetRes = await fetch(`https://ces.googleapis.com/v1/${dscToolset.name}?updateMask=openApiToolset.openApiSchema`, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        openApiToolset: {
+          openApiSchema: specString
+        },
+        etag: dscToolset.etag
+      })
+    });
+    if (patchToolsetRes.ok) {
+      dscToolset = await patchToolsetRes.json();
+      console.log(`[SUCCESS] Updated OpenAPI Toolset schema.`);
+    }
+  }
+
+  // 4. Construct prompt XML from agent.yaml
   const workflowsXml = agentConfig.root_agent.workflows.map(wf => `    <workflow name="${wf.name}">
       <trigger>${wf.trigger}</trigger>
       <instructions>
@@ -129,19 +187,27 @@ ${guardrailsXml}
   </guardrails>
 </agent_prompt>`;
 
-  console.log(`Updating root agent with latest compiled instructions and workflows...`);
+  console.log(`Updating root agent with latest compiled instructions, workflows, and toolsets...`);
 
-  const patchUrl = `https://ces.googleapis.com/v1/${rootAgentName}?updateMask=instruction`;
+  const updateFields = ['instruction'];
+  const patchPayload = {
+    instruction: compiledPrompt,
+    etag: currentAgent.etag
+  };
+
+  if (dscToolset?.name) {
+    updateFields.push('toolsets');
+    patchPayload.toolsets = [{ toolset: dscToolset.name }];
+  }
+
+  const patchUrl = `https://ces.googleapis.com/v1/${rootAgentName}?updateMask=${updateFields.join(',')}`;
   const patchRes = await fetch(patchUrl, {
     method: 'PATCH',
     headers: {
       'Authorization': `Bearer ${token}`,
       'Content-Type': 'application/json'
     },
-    body: JSON.stringify({
-      instruction: compiledPrompt,
-      etag: currentAgent.etag
-    })
+    body: JSON.stringify(patchPayload)
   });
 
   if (!patchRes.ok) {
