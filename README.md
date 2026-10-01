@@ -46,6 +46,13 @@ flowchart TD
 
 ---
 
+## Live Demonstration Guide
+
+A complete presenter guide featuring turn-by-turn scripts, user utterances, talking points, and dual-screen synchronization steps is available in:
+👉 **[Live Demonstration Guide & Use Cases](docs/demo_guide.md)**
+
+---
+
 ## Workspace Layout
 
 | Directory | Workspace | Description | Technology |
