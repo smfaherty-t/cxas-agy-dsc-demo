@@ -1,0 +1,69 @@
+{
+  "suite": "Dollar Shave Club CXAS Multi-turn Scenarios",
+  "version": "1.0.0",
+  "cost_per_session_usd": 0.50,
+  "scenarios": [
+    {
+      "id": "SC-001",
+      "title": "Starter Kit Recommendation & Checkout Handoff",
+      "turns": [
+        {
+          "turn": 1,
+          "speaker": "user",
+          "utterance": "Hi, I'm new to Dollar Shave Club and want to try a razor."
+        },
+        {
+          "turn": 2,
+          "speaker": "agent",
+          "expected_behavior": "Welcome user and introduce the $5 Starter Kit offer."
+        },
+        {
+          "turn": 3,
+          "speaker": "user",
+          "utterance": "I shave about 3 times a week and have sensitive skin."
+        },
+        {
+          "turn": 4,
+          "speaker": "agent",
+          "expected_behavior": "Recommend Shave Butter and suggest an ongoing refill frequency of every 3 months."
+        },
+        {
+          "turn": 5,
+          "speaker": "user",
+          "utterance": "Sounds good, where do I sign up?"
+        },
+        {
+          "turn": 6,
+          "speaker": "agent",
+          "expected_behavior": "Provide direct link to #starter-set with $5 offer code."
+        }
+      ]
+    },
+    {
+      "id": "SC-002",
+      "title": "Subscription Modification & Pause Handling",
+      "turns": [
+        {
+          "turn": 1,
+          "speaker": "user",
+          "utterance": "I'm going on vacation for two months and have too many blades."
+        },
+        {
+          "turn": 2,
+          "speaker": "agent",
+          "expected_behavior": "Recognize surplus inventory; explain how to skip a shipment or delay next delivery date."
+        },
+        {
+          "turn": 3,
+          "speaker": "user",
+          "utterance": "Can I do that without canceling my membership?"
+        },
+        {
+          "turn": 4,
+          "speaker": "agent",
+          "expected_behavior": "Confirm yes, membership remains active with free shipping intact."
+        }
+      ]
+    }
+  ]
+}

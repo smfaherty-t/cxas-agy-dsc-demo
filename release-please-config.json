@@ -1,0 +1,9 @@
+{
+  "packages": {
+    ".": {
+      "release-type": "node",
+      "package-name": "cxas-agy-dsc-demo",
+      "changelog-path": "CHANGELOG.md"
+    }
+  }
+}
