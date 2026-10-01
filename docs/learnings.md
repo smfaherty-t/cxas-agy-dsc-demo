@@ -74,8 +74,13 @@ This document is the repository's permanent institutional memory. Whenever an un
      ```
   3. Include strict mandatory tool invocation rules in `<tool_guidelines>` within the agent prompt so the model consistently executes the registered tools.
   4. Always snapshot a new version and update the deployment after patching agent toolsets.
-
-
-
-
-
+### [2026-10-01] Learning 9: Real-Time Mutation Synchronization & Address Cascading Across GenAI Agents and Dashboards
+- **Issue**:
+  1. When a conversational agent mutates an entity (e.g. updating a customer shipping address via tool invocation), active in-transit orders or pending shipments can easily become out of sync if only the root entity is updated.
+  2. For dual-screen executive demonstrations, webhooks/WebSockets add excessive deployment overhead and connection fragility, while static manual reloads ruin the "magic moment" of seeing live AI tool execution.
+  3. In Express 5 with `@types/express`, `req.params.identifier` is typed as `string | string[]`, causing TypeScript compilation errors when passed directly to database lookup functions expecting `string`.
+- **Mitigation**:
+  1. **Cascade Mutations**: In `DatabaseStore.updateCustomerAddress()`, automatically cascade address updates to any non-terminal orders (`IN_TRANSIT`, `PROCESSING`, `LOST_IN_TRANSIT`) so the destination address immediately updates across the system.
+  2. **Lightweight Polling with Diff Detection**: Implement 3-second interval polling (`GET /api/customers`) on the operations dashboard, caching prior address hashes. When a diff is detected, trigger visual CSS animations (`animate-pulse-glow`) and animated toast banners so observers see mutations without page reloads.
+  3. **Express 5 Param Normalization**: Always normalize request parameters using `const id = Array.isArray(raw) ? raw[0] : raw;` before passing to services.
+- **Reference**: [GitHub Issue #12](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/12), [GitHub Issue #13](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/13)
