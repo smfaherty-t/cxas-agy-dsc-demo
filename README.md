@@ -19,6 +19,12 @@ flowchart TD
     WebApp -.->|Served by| CloudRun
 ```
 
+### Live Deployment
+- **Production URL**: [https://cxas-dsc-demo-137470913560.us-central1.run.app](https://cxas-dsc-demo-137470913560.us-central1.run.app)
+- **GCP Project**: `sa-training-466722` (Project Number: `137470913560`)
+- **Region**: `us-central1`
+- **Healthcheck**: [https://cxas-dsc-demo-137470913560.us-central1.run.app/_healthz](https://cxas-dsc-demo-137470913560.us-central1.run.app/_healthz)
+
 ### Stack Components
 - **Frontend**: React 19, TypeScript, Vite, Tailwind CSS v4, Lucide Icons.
 - **Component Styling**: Clean, accessible shadcn/ui design patterns with Dollar Shave Club brand palette (slate/navy `#0f172a`, amber `#ea580c`, warm stone `#fafaf9`).
