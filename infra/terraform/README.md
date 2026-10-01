@@ -14,25 +14,26 @@ This directory manages the Google Cloud Platform infrastructure for the Dollar S
 2. [Terraform](https://www.terraform.io/) >= 1.5.0 installed.
 3. Access to GCP project `sa-training-466722`.
 
-## Operations
+## Live Endpoints
+- **Web Storefront**: [https://cxas-dsc-web-z66d5k5ioa-uc.a.run.app](https://cxas-dsc-web-z66d5k5ioa-uc.a.run.app)
+- **Backend API**: [https://cxas-dsc-api-z66d5k5ioa-uc.a.run.app](https://cxas-dsc-api-z66d5k5ioa-uc.a.run.app)
+- **OpenAPI Schema**: [https://cxas-dsc-api-z66d5k5ioa-uc.a.run.app/api/openapi.json](https://cxas-dsc-api-z66d5k5ioa-uc.a.run.app/api/openapi.json)
+- **Artifact Registry**: `projects/sa-training-466722/locations/us-central1/repositories/cxas-dsc-demo`
 
-### 1. Initialization
+## Operations (Single Root Commands)
+
+### 1. Preview Changes
 ```bash
-terraform init
+npm run tf:plan
 ```
 
-### 2. Preview Changes
+### 2. Deploy / Upgrade Infrastructure
 ```bash
-terraform plan
+npm run tf:apply
 ```
 
-### 3. Deploy / Upgrade Infrastructure
-```bash
-terraform apply
-```
-
-### 4. Teardown / Destroy Infrastructure
+### 3. Teardown / Destroy Infrastructure
 To completely tear down all provisioned Cloud Run services, repositories, and IAM bindings:
 ```bash
-terraform destroy
+npm run tf:destroy
 ```

@@ -55,10 +55,6 @@ resource "google_cloud_run_v2_service" "api" {
         name  = "NODE_ENV"
         value = "production"
       }
-      env {
-        name  = "PORT"
-        value = "8080"
-      }
     }
   }
 
@@ -101,10 +97,6 @@ resource "google_cloud_run_v2_service" "web" {
       env {
         name  = "NODE_ENV"
         value = "production"
-      }
-      env {
-        name  = "PORT"
-        value = "8080"
       }
     }
   }

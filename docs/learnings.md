@@ -41,4 +41,12 @@ This document is the repository's permanent institutional memory. Whenever an un
   4. Ensure every workspace package exports standard npm lifecycle scripts (`build`, `test`) so root single commands execute predictably.
 - **Reference**: [GitHub Issue #8](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/8)
 
+### [2026-10-01] Learning 6: Google Cloud Run v2 Reserved Environment Variables
+- **Issue**: Declaring `PORT` in the `template.containers.env` block of a `google_cloud_run_v2_service` Terraform resource causes deployment failure (`Error 400: template.containers[0].env: The following reserved env names were provided: PORT. These values are automatically set by the system.`).
+- **Mitigation**:
+  1. Never declare `PORT` in `google_cloud_run_v2_service` container `env` blocks. Cloud Run automatically injects and sets `PORT=8080`.
+  2. In application entrypoints (`server.ts`, `server.js`), always default to `process.env.PORT || '8080'`.
+  3. Keep container environment variables restricted to application-specific runtime flags (`NODE_ENV`, custom configuration).
+- **Reference**: [GitHub Issue #11](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/11)
+
 

@@ -2,3 +2,13 @@ node_modules
 dist
 .DS_Store
 *.log
+
+# Terraform / OpenTofu
+.terraform/
+**/.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+crash.*.log
+*.tfvars
+!*.tfvars.example

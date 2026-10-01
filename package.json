@@ -13,9 +13,9 @@
     "test:eval": "npm run test:eval --workspace=@dsc/agent",
     "eval:remote": "npm run eval:remote --workspace=@dsc/agent",
     "sync:agent": "npm run sync:agent --workspace=@dsc/agent",
-    "tf:plan": "terraform -chdir=infra/terraform plan",
-    "tf:apply": "terraform -chdir=infra/terraform apply -auto-approve",
-    "tf:destroy": "terraform -chdir=infra/terraform destroy -auto-approve"
+    "tf:plan": "GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token) tofu -chdir=infra/terraform plan",
+    "tf:apply": "GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token) tofu -chdir=infra/terraform apply -auto-approve",
+    "tf:destroy": "GOOGLE_OAUTH_ACCESS_TOKEN=$(gcloud auth print-access-token) tofu -chdir=infra/terraform destroy -auto-approve"
   },
   "devDependencies": {
     "tsx": "^4.19.2",
