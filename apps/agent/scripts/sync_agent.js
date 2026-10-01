@@ -151,6 +151,46 @@ ${guardrailsXml}
   }
 
   console.log(`[SUCCESS] Root agent successfully updated and synchronized with CX Agent Studio!`);
+
+  // 4. Create a new version snapshot
+  console.log(`Creating version snapshot for deployment...`);
+  const versionUrl = `https://ces.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/apps/${APP_ID}/versions`;
+  const versionRes = await fetch(versionUrl, {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${token}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      displayName: `dsc-sync-${Date.now().toString(36)}`,
+      description: 'Synchronized from git monorepo specs'
+    })
+  });
+
+  if (versionRes.ok) {
+    const versionData = await versionRes.json();
+    console.log(`Created version: ${versionData.name}`);
+
+    // 5. Update webchat deployment
+    const DEPLOYMENT_ID = process.env.CXAS_DEPLOYMENT_ID || '93ef4da3-d0a5-4db9-b686-cb0f5a2537fb';
+    const deployUrl = `https://ces.googleapis.com/v1/projects/${PROJECT_ID}/locations/${LOCATION}/apps/${APP_ID}/deployments/${DEPLOYMENT_ID}?updateMask=appVersion`;
+    const deployRes = await fetch(deployUrl, {
+      method: 'PATCH',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        appVersion: versionData.name
+      })
+    });
+
+    if (deployRes.ok) {
+      console.log(`[SUCCESS] Deployment ${DEPLOYMENT_ID} updated to point to latest version!`);
+    } else {
+      console.warn(`[WARN] Could not update deployment: ${deployRes.status}`);
+    }
+  }
 }
 
 sync().catch(err => {
