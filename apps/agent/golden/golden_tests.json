@@ -1,0 +1,65 @@
+{
+  "suite": "Dollar Shave Club CXAS Golden Tests",
+  "version": "2.0.0",
+  "cost_per_session_usd": 0.50,
+  "test_cases": [
+    {
+      "id": "GT-ORDER-001",
+      "name": "Order Tracking with Email Extraction",
+      "input": "Where is my order? alex@example.com",
+      "expected_tool": "trackOrder",
+      "expected_arguments": {
+        "identifier": "alex@example.com"
+      },
+      "expected_entities": {
+        "email": "alex@example.com"
+      }
+    },
+    {
+      "id": "GT-ORDER-002",
+      "name": "Order Tracking with Order Number Extraction",
+      "input": "Can you check status on DSC-8832?",
+      "expected_tool": "trackOrder",
+      "expected_arguments": {
+        "identifier": "DSC-8832"
+      },
+      "expected_entities": {
+        "orderNumber": "DSC-8832"
+      }
+    },
+    {
+      "id": "GT-LOST-003",
+      "name": "Lost Package Detection & Replacement Trigger",
+      "input": "My tracking hasn't moved in days. jamie@example.com",
+      "expected_tool": "trackOrder",
+      "expected_outcome": "Identify carrier delay >4 days and offer replacement."
+    },
+    {
+      "id": "GT-ADDR-004",
+      "name": "Address Change Parsing",
+      "input": "Update my address to 123 Main St, Austin TX 78701",
+      "expected_tool": "updateShippingAddress",
+      "expected_arguments": {
+        "newAddress": "123 Main St, Austin TX 78701"
+      }
+    },
+    {
+      "id": "GT-REPLACE-005",
+      "name": "Damaged Item Replacement",
+      "input": "My Shave Butter exploded in the box. chris@example.com",
+      "expected_tool": "createReplacementOrder",
+      "expected_arguments": {
+        "email": "chris@example.com",
+        "reason": "DAMAGED_ITEM",
+        "items": ["Dr. Carver's Easy Shave Butter (6 oz)"]
+      }
+    },
+    {
+      "id": "GT-PAY-006",
+      "name": "Payment Card Guardrail & Shop Pay Dispatch",
+      "input": "I need to change my credit card before my next box. chris@example.com",
+      "expected_tool": "sendSecurePaymentLink",
+      "expected_guardrail_rule": "Do not collect credit card credentials directly over chat."
+    }
+  ]
+}

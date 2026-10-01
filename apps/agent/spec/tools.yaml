@@ -1,0 +1,40 @@
+tools:
+  - name: "trackOrder"
+    type: "OPEN_API"
+    description: "Lookup customer account, order status, carrier tracking, ETA, and subscription Restock Box schedule."
+    openApiSpec:
+      path: "/api/orders/track"
+      method: "POST"
+      operationId: "trackOrder"
+  
+  - name: "updateShippingAddress"
+    type: "OPEN_API"
+    description: "Update customer shipping address in the database for current replacement and future boxes."
+    openApiSpec:
+      path: "/api/customers/address"
+      method: "POST"
+      operationId: "updateShippingAddress"
+
+  - name: "createReplacementOrder"
+    type: "OPEN_API"
+    description: "Process free replacement order for lost in transit packages or damaged/exploded items."
+    openApiSpec:
+      path: "/api/orders/replacement"
+      method: "POST"
+      operationId: "createReplacementOrder"
+
+  - name: "delayRestockBox"
+    type: "OPEN_API"
+    description: "Postpone next Restock Box billing date."
+    openApiSpec:
+      path: "/api/subscriptions/delay"
+      method: "POST"
+      operationId: "delayRestockBox"
+
+  - name: "sendSecurePaymentLink"
+    type: "OPEN_API"
+    description: "Dispatch secure Shop Pay link via SMS and email to update card credentials safely."
+    openApiSpec:
+      path: "/api/billing/secure-link"
+      method: "POST"
+      operationId: "sendSecurePaymentLink"

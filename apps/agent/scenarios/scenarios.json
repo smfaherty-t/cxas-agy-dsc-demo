@@ -1,0 +1,112 @@
+{
+  "suite": "Dollar Shave Club Customer Support Scenarios",
+  "version": "2.0.0",
+  "cost_per_session_usd": 0.50,
+  "scenarios": [
+    {
+      "id": "SC-ALEX-01",
+      "customer": "Alex Vance",
+      "email": "alex@example.com",
+      "title": "Order Tracking & Restock Box Explanation",
+      "turns": [
+        {
+          "turn": 1,
+          "speaker": "user",
+          "utterance": "Hey, where is my order?"
+        },
+        {
+          "turn": 2,
+          "speaker": "agent",
+          "expected_behavior": "Politely ask for email or order number.",
+          "sample_response": "Hey there! I can definitely track that down for you. Do you mind sharing the email address on your Dollar Shave Club account, or your order number?"
+        },
+        {
+          "turn": 3,
+          "speaker": "user",
+          "utterance": "alex@example.com"
+        },
+        {
+          "turn": 4,
+          "speaker": "agent",
+          "expected_tool_call": "trackOrder",
+          "expected_behavior": "Report order DSC-8832 in transit, tracking 1Z99999999999999, arriving tomorrow by 8 PM.",
+          "sample_response": "Thanks, Alex! It looks like your order (DSC-8832) is currently in transit. The tracking number is 1Z99999999999999, and it's scheduled to arrive tomorrow by 8 PM. Anything else I can help you with?"
+        },
+        {
+          "turn": 5,
+          "speaker": "user",
+          "utterance": "Actually yeah. I just got my starter set a week ago, why does my account say I'm getting billed again next week?"
+        },
+        {
+          "turn": 6,
+          "speaker": "agent",
+          "expected_behavior": "Explain Starter Set trial schedule, first full-size Restock Box two weeks later to avoid running out of blades, regular monthly/bi-monthly schedule, option to delay from account page before billing on October 15.",
+          "sample_response": "Ah, the classic Starter Set confusion! Don't worry, you aren't being double-billed. Because the Starter Set is just a trial, we schedule your first full-size Restock Box two weeks later so you don't run out of fresh blades. After that, it switches to a regular monthly or bi-monthly schedule. If you need more time, you can easily delay that Restock Box right from your account page before it bills on October 15."
+        }
+      ]
+    },
+    {
+      "id": "SC-JAMIE-02",
+      "customer": "Jamie Cole",
+      "email": "jamie@example.com",
+      "title": "Lost Package & Address Change Workflow",
+      "turns": [
+        {
+          "turn": 1,
+          "speaker": "user",
+          "utterance": "Hi. My tracking hasn't moved in days. jamie@example.com"
+        },
+        {
+          "turn": 2,
+          "speaker": "agent",
+          "expected_tool_call": "trackOrder",
+          "expected_behavior": "Pull order DSC-9104, identify carrier hasn't scanned in >4 days, declare lost in transit, and offer free replacement.",
+          "sample_response": "Hey Jamie. Let me take a look at that for you. Pulling up order DSC-9104... Oof, you're right. I see the carrier hasn't scanned your package in over 4 days. Sometimes packages go rogue, but we've got your back. Since it's officially lost in transit, I'm going to go ahead and process a free replacement order for you right now."
+        },
+        {
+          "turn": 3,
+          "speaker": "user",
+          "utterance": "Awesome, thank you. Can you also send it to a different address? I'm moving."
+        },
+        {
+          "turn": 4,
+          "speaker": "agent",
+          "expected_behavior": "Acknowledge urgency before processing, prompt for new address.",
+          "sample_response": "We need to be quick to catch it before it processes! Since this is a brand new replacement, I can update the shipping address for this order and your future boxes. What’s the new address?"
+        },
+        {
+          "turn": 5,
+          "speaker": "user",
+          "utterance": "123 Main St, Austin TX 78701"
+        },
+        {
+          "turn": 6,
+          "speaker": "agent",
+          "expected_tool_calls": ["updateShippingAddress", "createReplacementOrder"],
+          "expected_behavior": "Update address to 123 Main St, Austin TX 78701 in database, submit replacement order, promise new tracking email.",
+          "sample_response": "Got it. I've updated your address to 123 Main St, Austin TX 78701 and submitted the replacement order. You'll get a new tracking email shortly."
+        }
+      ]
+    },
+    {
+      "id": "SC-CHRIS-03",
+      "customer": "Chris Wright",
+      "email": "chris@example.com",
+      "title": "Damaged Item & Secure Payment Link Workflow",
+      "turns": [
+        {
+          "turn": 1,
+          "speaker": "user",
+          "utterance": "Hey, chris@example.com here. Two things. First, my Shave Butter exploded in the box. Second, I need to change my credit card before my next box."
+        },
+        {
+          "turn": 2,
+          "speaker": "agent",
+          "expected_tool_calls": ["createReplacementOrder", "sendSecurePaymentLink"],
+          "expected_behavior": "Apologize for Shave Butter explosion, process free replacement (ships in 24h), note bill date is tomorrow, strictly refuse taking card over chat, and dispatch secure Shop Pay link via text & email.",
+          "sample_response": "Hey Chris. First off, I'm so sorry about the Shave Butter explosion—that is definitely not the unboxing experience we want for you. I'm processing a free replacement for the Shave Butter right now; it'll ship out within 24 hours.\n\nAs for the card, your next bill date is actually tomorrow! Since we can't take credit card numbers securely over chat, I just texted and emailed a secure Shop Pay link to the contact info on your file. Just click that link to update your card, and you'll be all set for tomorrow's billing."
+        }
+      ]
+    }
+  ]
+}

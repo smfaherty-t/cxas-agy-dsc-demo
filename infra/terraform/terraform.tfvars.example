@@ -1,0 +1,7 @@
+project_id         = "sa-training-466722"
+region             = "us-central1"
+artifact_repo_name = "cxas-dsc-demo"
+web_service_name   = "cxas-dsc-web"
+api_service_name   = "cxas-dsc-api"
+web_image          = "us-central1-docker.pkg.dev/sa-training-466722/cxas-dsc-demo/web:latest"
+api_image          = "us-central1-docker.pkg.dev/sa-training-466722/cxas-dsc-demo/api:latest"

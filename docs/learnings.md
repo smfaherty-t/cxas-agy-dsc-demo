@@ -32,6 +32,13 @@ This document is the repository's permanent institutional memory. Whenever an un
   2. Declare the global API functions (`openCxasChat`, `closeCxasChat`, `toggleCxasChat`) unconditionally on `window` immediately so external call sites never encounter race conditions.
   3. Keep the asynchronous SDK event listener (`chat-messenger-loaded`) strictly focused on context registration (`chatSdk.registerContext`) and shadow DOM patching.
   4. Ensure `chat-toggle-dialog-button` (fullscreen mode toggler) is not conflated with widget close; only explicit close events (`chat-messenger-close`) should close the chat window.
-- **Reference**: [GitHub Issue #7](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/7)
+### [2026-10-01] Learning 5: Monorepo Workspace Scoping & Test Environment Isolation
+- **Issue**: Running root-level test and build runners (`npm test --workspaces`, `npm run build --workspaces`) across heterogeneous packages (e.g., React web app using `jsdom` vs. backend API using `node` vs. declarative agent validator) can cause cross-workspace config leaks. Specifically, Vite and Vitest can inherit root configs (looking for non-existent root setup files), or attempt TCP socket binds that fail in sandboxed CI environments.
+- **Mitigation**:
+  1. Maintain an independent `tsconfig.json` and `vitest.config.ts` inside each workspace package (`apps/web`, `apps/api`, `apps/agent`).
+  2. Root `tsconfig.json` acts as a project references orchestrator without polluting child compilation contexts.
+  3. Backend unit and integration tests should evaluate business logic, service layers, and database mutations in-memory rather than relying on ephemeral TCP sockets, ensuring 100% sandboxed test execution without socket permission requirements.
+  4. Ensure every workspace package exports standard npm lifecycle scripts (`build`, `test`) so root single commands execute predictably.
+- **Reference**: [GitHub Issue #8](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/8)
 
 

@@ -1,0 +1,16 @@
+{
+  "name": "@dsc/agent",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/validate_specs.js",
+    "test:eval": "node scripts/validate_specs.js",
+    "eval:remote": "node scripts/run_evaluation.js",
+    "sync:agent": "node scripts/sync_agent.js",
+    "test": "npm run test:eval"
+  },
+  "dependencies": {
+    "yaml": "^2.7.0"
+  }
+}
