@@ -21,10 +21,27 @@ describe('Dollar Shave Club Customer Service API & Services', () => {
 
   describe('Database Store Initialization', () => {
     it('should initialize with pre-seeded customers, orders, and subscriptions', () => {
-      expect(db.getCustomers().length).toBe(3);
-      expect(db.getOrders().length).toBe(3);
-      expect(db.getSubscriptions().length).toBe(3);
+      expect(db.getCustomers().length).toBe(13);
+      expect(db.getOrders().length).toBe(13);
+      expect(db.getSubscriptions().length).toBe(13);
       expect(db.getReplacements().length).toBe(0);
+    });
+
+    it('should return enriched customer records with orders and subscriptions', () => {
+      const enriched = db.getAllEnrichedCustomers();
+      expect(enriched.length).toBe(13);
+      const morgan = enriched.find(c => c.id === 'cust-morgan');
+      expect(morgan).toBeDefined();
+      expect(morgan?.orders.length).toBe(1);
+      expect(morgan?.orders[0].orderNumber).toBe('DSC-6120');
+      expect(morgan?.subscription?.planName).toBe('Executive Club');
+    });
+
+    it('should synchronize order destination address when customer address is updated', () => {
+      const updated = db.updateCustomerAddress('cust-morgan', '999 New Wave Way, Austin TX 78704');
+      expect(updated?.shippingAddress).toBe('999 New Wave Way, Austin TX 78704');
+      const orders = db.findOrdersByCustomerId('cust-morgan');
+      expect(orders[0].shippingAddress).toBe('999 New Wave Way, Austin TX 78704');
     });
   });
 

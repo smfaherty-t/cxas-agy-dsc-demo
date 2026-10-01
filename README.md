@@ -12,7 +12,8 @@ A production-grade monorepo containing a full-stack Dollar Shave Club demo platf
 ```mermaid
 flowchart TD
     subgraph Client ["Client Layer"]
-      User["End User Browser"] --> WebApp["apps/web: React 19 + Tailwind CSS"]
+      User["End User / Customer"] --> WebApp["apps/web: Storefront (React 19 + Tailwind v4)"]
+      Admin["Operations / Agent Demo"] --> Dashboard["apps/dashboard: Live Customer DB Monitor (React 19 + Tailwind v4)"]
       WebApp --> ChatWidget["Google CCAI Chat Messenger Widget"]
     end
 
@@ -22,15 +23,26 @@ flowchart TD
     end
 
     subgraph DataLayer ["Database & Services"]
-      APIService --> InMemDB["In-Memory / SQLite Data Store (Customers, Orders, Subscriptions)"]
+      APIService --> InMemDB["In-Memory Store (13 Seeded Customers, Orders, Subscriptions)"]
+      Dashboard -->|Real-Time Polling 3s| APIService
     end
 
     subgraph Infrastructure ["Infrastructure as Code (infra/terraform)"]
       Terraform["Terraform ~> 6.0"] --> CloudRunWeb["Cloud Run: cxas-dsc-web"]
+      Terraform --> CloudRunDash["Cloud Run: cxas-dsc-dashboard"]
       Terraform --> CloudRunAPI["Cloud Run: cxas-dsc-api"]
-      Terraform --> ArtifactRegistry["Artifact Registry: cxas-dsc-demo"]
     end
 ```
+
+---
+
+## Live Deployments (Cloud Run)
+
+| Application | Live URL | Purpose |
+| :--- | :--- | :--- |
+| **Storefront & AI Chat** | [cxas-dsc-web](https://cxas-dsc-web-137470913560.us-central1.run.app) | Public Dollar Shave Club website with embedded CX Agent Studio chat widget |
+| **Operations & DB Monitor** | [cxas-dsc-dashboard](https://cxas-dsc-dashboard-137470913560.us-central1.run.app) | Real-time member database monitor displaying live address updates and order states |
+| **Customer Service API** | [cxas-dsc-api](https://cxas-dsc-api-137470913560.us-central1.run.app) | REST API & OpenAPI 3.0.3 specification serving CXAS toolsets |
 
 ---
 
@@ -39,6 +51,7 @@ flowchart TD
 | Directory | Workspace | Description | Technology |
 | :--- | :--- | :--- | :--- |
 | `apps/web` | `@dsc/web` | Dollar Shave Club storefront & chat widget | React 19, TypeScript, Vite, Tailwind CSS v4, Lucide Icons |
+| `apps/dashboard` | `@dsc/dashboard` | Real-time customer database monitor & address verification | React 19, TypeScript, Vite, Tailwind CSS v4, Lucide Icons |
 | `apps/api` | `@dsc/api` | Customer service API, database lookup/mutations & OpenAPI 3.0 specs | Node.js, Express, TypeScript, Vitest |
 | `apps/agent` | `@dsc/agent` | CX Agent Studio specifications, OpenAPI tools, golden tests & scenarios | Google CES (`ces.googleapis.com`), Gemini 3.1 Flash Live |
 | `infra/terraform` | N/A | Infrastructure as code for Cloud Run, Artifact Registry, IAM | HashiCorp Terraform ~> 6.0 |
@@ -68,11 +81,14 @@ All commands are executed directly from the monorepo root:
 | Command | Action | Financial Cost |
 | :--- | :--- | :--- |
 | `npm test` | Run all unit, integration, and scenario validations across all workspaces locally | **$0.00 (Zero Spend)** |
+| `npm run test:dashboard` | Run unit and component tests for the operations dashboard | **$0.00 (Zero Spend)** |
 | `npm run build` | Build all workspace packages for production (`tsc`, `vite build`, `validate_specs`) | **$0.00 (Zero Spend)** |
+| `npm run build:dashboard` | Build operations dashboard production bundle | **$0.00 (Zero Spend)** |
+| `npm run dev` | Start development servers across workspaces | **$0.00** |
+| `npm run dev:dashboard` | Start local operations dashboard server on port 3001 | **$0.00** |
 | `npm run test:eval` | Run offline CX Agent Studio scenario & golden test validation | **$0.00 (Zero Spend)** |
 | `npm run eval:remote` | Remote live session evaluator strictly guarded by spend gate | **$0.50 / session (Requires user approval)** |
 | `npm run sync:agent` | Deploy declarative `agent.yaml` instructions to Google CX Agent Studio via CES API | **$0.00** |
-| `npm run dev` | Start development servers across workspaces | **$0.00** |
 | `npm run tf:plan` | Preview Terraform infrastructure deployment | **$0.00** |
 | `npm run tf:apply` | Provision Artifact Registry and Cloud Run services | GCP hosting |
 | `npm run tf:destroy` | Completely tear down all demo infrastructure on GCP | **$0.00** |

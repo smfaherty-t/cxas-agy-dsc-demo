@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Sparkles, Menu, X, ShieldCheck, MessageSquare } from 'lucide-react';
+import { Sparkles, Menu, X, ShieldCheck, MessageSquare, Database } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -21,6 +21,8 @@ export const Header: React.FC = () => {
       }
     }
   };
+
+  const dashboardUrl = import.meta.env.VITE_DASHBOARD_URL || 'https://cxas-dsc-dashboard-z66d5k5ioa-uc.a.run.app';
 
   return (
     <header className="sticky top-0 z-40 w-full bg-white/95 backdrop-blur-md border-b border-stone-200">
@@ -62,7 +64,17 @@ export const Header: React.FC = () => {
           </nav>
 
           {/* Right Actions */}
-          <div className="hidden md:flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-3">
+            <a
+              href={dashboardUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-stone-900 text-stone-100 hover:bg-stone-800 transition-all shadow-sm"
+              title="Open Customer Operations & Live Database Monitor"
+            >
+              <Database className="w-3.5 h-3.5 text-emerald-400" />
+              <span>Live DB Monitor ↗</span>
+            </a>
             <button
               onClick={triggerChat}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100 transition-all cursor-pointer"

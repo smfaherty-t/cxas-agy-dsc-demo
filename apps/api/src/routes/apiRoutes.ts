@@ -110,3 +110,39 @@ apiRouter.post('/billing/secure-link', (req: Request, res: Response) => {
   }
   res.json(result);
 });
+
+// 6. Get All Customers (Enriched with Orders, Subscriptions, Replacements)
+apiRouter.get('/customers', (_req: Request, res: Response) => {
+  const customers = db.getAllEnrichedCustomers();
+  res.json({
+    total: customers.length,
+    customers,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 7. Get Single Customer by ID or Email
+apiRouter.get('/customers/:identifier', (req: Request, res: Response) => {
+  const rawId = req.params.identifier;
+  const identifier = Array.isArray(rawId) ? rawId[0] : rawId;
+  if (!identifier) {
+    res.status(400).json({ error: 'Missing customer identifier.' });
+    return;
+  }
+  const isEmail = identifier.includes('@');
+  const customer = isEmail ? db.findCustomerByEmail(identifier) : db.findCustomerById(identifier);
+  if (!customer) {
+    res.status(404).json({ error: `Customer '${identifier}' not found.` });
+    return;
+  }
+  const orders = db.findOrdersByCustomerId(customer.id);
+  const subscription = db.findSubscriptionByCustomerId(customer.id);
+  const replacements = db.getReplacements().filter(r => r.customerId === customer.id);
+  res.json({
+    ...customer,
+    orders,
+    subscription,
+    replacements
+  });
+});
+
