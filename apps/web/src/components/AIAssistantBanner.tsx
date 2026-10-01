@@ -20,52 +20,78 @@ export const AIAssistantBanner: React.FC = () => {
   };
 
   const samplePrompts = [
-    "What's the difference between 4-blade and 6-blade?",
-    "What products are best for sensitive skin?",
-    "How does the flexible monthly subscription work?",
-    "Can you recommend a starter routine for shaving?"
+    {
+      label: "Product Advice",
+      text: "What's the difference between 4-blade and 6-blade?"
+    },
+    {
+      label: "Alex Vance Scenario",
+      text: "Can you track my order DSC-8832 and check my subscription date?"
+    },
+    {
+      label: "Jamie Cole Scenario",
+      text: "My package DSC-9104 has no carrier updates for 5 days. Can I get a replacement to my new address?"
+    },
+    {
+      label: "Chris Wright Scenario",
+      text: "My Shave Butter was damaged in shipment DSC-7721. Can I get a replacement and update my payment method?"
+    }
   ];
 
   return (
-    <section className="bg-stone-900 text-white py-12 px-4 sm:px-6 lg:px-8 border-y border-stone-800 relative overflow-hidden">
-      {/* Decorative gradient aura */}
-      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl pointer-events-none" />
+    <section className="bg-[#121212] text-white py-14 px-4 sm:px-6 lg:px-8 border-y border-stone-800 relative overflow-hidden">
+      {/* Decorative gradient glow */}
+      <div className="absolute top-1/2 left-1/4 -translate-y-1/2 w-96 h-96 bg-[#FE5000]/10 rounded-full blur-3xl pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto relative">
-        <div className="flex flex-col lg:flex-row items-center justify-between gap-8">
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-10">
           
-          <div className="max-w-2xl space-y-3 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-400 text-xs font-bold border border-amber-500/30">
-              <Bot className="w-3.5 h-3.5" />
+          <div className="max-w-2xl space-y-4 text-center lg:text-left">
+            <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-orange-500/20 text-orange-400 text-xs font-black uppercase tracking-wider border border-orange-500/30">
+              <Bot className="w-4 h-4" />
               <span>POWERED BY GOOGLE CX AGENT STUDIO</span>
             </div>
 
-            <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-white">
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase">
               Meet Your 24/7 Personal Grooming Advisor
             </h2>
 
-            <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
-              Not sure which blade fits your beard density or sensitive skin? Have questions about your delivery frequency? Click the chat bubble in the lower-left corner anytime to converse with our conversational AI agent.
+            <p className="text-stone-300 text-sm sm:text-base leading-relaxed font-medium">
+              Have questions about which razor handle fits your routine? Need to track an in-transit order, delay your upcoming Restock Box, or update your delivery address? Click the chat bubble in the lower-left corner anytime to converse live with our conversational AI agent.
             </p>
+
+            <div className="pt-1 text-xs text-stone-400 font-bold flex items-center justify-center lg:justify-start gap-2">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span>Gemini Live session connected &bull; Real-time database mutations enabled</span>
+            </div>
           </div>
 
           {/* Quick interactive sample prompts */}
-          <div className="w-full lg:w-auto flex flex-col gap-2 shrink-0">
-            <span className="text-xs font-bold uppercase tracking-wider text-stone-400 text-center lg:text-left">
-              Try asking our agent:
+          <div className="w-full lg:w-auto flex flex-col gap-2 shrink-0 max-w-xl">
+            <span className="text-xs font-black uppercase tracking-wider text-stone-400 text-center lg:text-left">
+              Try asking our agent directly:
             </span>
-            <div className="flex flex-col sm:flex-row lg:flex-col gap-2">
-              {samplePrompts.map((prompt, idx) => (
+            <div className="flex flex-col gap-2.5">
+              {samplePrompts.map((item, idx) => (
                 <button
                   key={idx}
-                  onClick={() => openChatWithPrompt(prompt)}
-                  className="flex items-center justify-between gap-3 text-left text-xs sm:text-sm px-4 py-2.5 rounded-lg bg-stone-800 hover:bg-stone-700/80 border border-stone-700 text-stone-200 hover:text-white transition-all cursor-pointer group"
+                  type="button"
+                  onClick={() => openChatWithPrompt(item.text)}
+                  className="flex items-center justify-between gap-3 text-left text-xs sm:text-sm px-4 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700/80 text-stone-200 hover:text-white transition-all cursor-pointer group shadow-sm hover:border-orange-500/60"
+                  aria-label={item.text}
                 >
-                  <div className="flex items-center gap-2">
-                    <MessageCircle className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
-                    <span>&ldquo;{prompt}&rdquo;</span>
+                  <div className="flex items-center gap-2.5">
+                    <MessageCircle className="w-4 h-4 text-[#FE5000] group-hover:scale-110 transition-transform shrink-0" />
+                    <div>
+                      <span className="block text-[10px] font-black uppercase tracking-wider text-orange-400">
+                        {item.label}
+                      </span>
+                      <span className="font-semibold text-stone-200 group-hover:text-white">
+                        &ldquo;{item.text}&rdquo;
+                      </span>
+                    </div>
                   </div>
-                  <ArrowUpRight className="w-3.5 h-3.5 text-stone-400 group-hover:text-amber-400 transition-colors shrink-0" />
+                  <ArrowUpRight className="w-4 h-4 text-stone-400 group-hover:text-[#FE5000] transition-colors shrink-0 ml-2" />
                 </button>
               ))}
             </div>

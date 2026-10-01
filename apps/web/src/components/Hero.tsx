@@ -1,155 +1,174 @@
 import React from 'react';
-import { Check, Star, ArrowRight, ShieldCheck, Truck, RefreshCw } from 'lucide-react';
+import { ArrowRight, Star, ShieldCheck, Users, Check } from 'lucide-react';
 
 export const Hero: React.FC = () => {
-  return (
-    <section id="starter-set" className="relative overflow-hidden bg-gradient-to-b from-stone-100 via-stone-50 to-white pt-12 pb-20 lg:pt-20 lg:pb-28">
-      {/* Background accent */}
-      <div className="absolute top-0 right-0 -mr-20 -mt-20 w-96 h-96 rounded-full bg-amber-200/30 blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-80 h-80 rounded-full bg-stone-300/30 blur-3xl pointer-events-none" />
+  const scrollToCustomizer = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const target = document.getElementById('customizer');
+    if (target) {
+      target.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+  return (
+    <section id="starter-set" className="relative bg-[#F9F3EA] border-b border-stone-200 overflow-hidden pt-8 pb-16 lg:pt-14 lg:pb-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
           
-          {/* Left Column: Headlines & Copy */}
-          <div className="lg:col-span-7 space-y-6 text-center lg:text-left">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-100/80 border border-amber-300 text-amber-900 text-xs sm:text-sm font-bold tracking-wide">
-              <span className="w-2 h-2 rounded-full bg-amber-600 animate-pulse"></span>
-              THE ALL-IN-ONE STARTER SET
+          {/* Left Column: Visual Showcase (Image With Text reverse) */}
+          <div className="lg:col-span-6 flex justify-center order-2 lg:order-1">
+            <div className="relative w-full max-w-lg">
+              {/* Product Card Container */}
+              <div className="relative rounded-3xl bg-white border border-stone-200 shadow-2xl p-6 sm:p-8 overflow-hidden group">
+                
+                {/* Ribbon Badge */}
+                <div className="absolute top-4 right-4 z-10">
+                  <span className="inline-flex items-center px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-[#FE5000] text-white shadow-md">
+                    $3.99 TRIAL
+                  </span>
+                </div>
+
+                {/* Main Visual Image / Render */}
+                <div className="w-full aspect-square bg-[#DBEBF5] rounded-2xl flex flex-col items-center justify-center p-6 relative overflow-hidden border border-blue-100">
+                  <div className="absolute inset-0 bg-radial from-white/60 to-transparent pointer-events-none" />
+                  
+                  {/* High fidelity Razor, Handle and Butter illustration/photo */}
+                  <div className="relative z-10 flex items-center justify-center gap-6 my-auto">
+                    {/* Diamond Grip Razor */}
+                    <div className="flex flex-col items-center filter drop-shadow-xl transform -rotate-12 group-hover:rotate-0 transition-transform duration-500">
+                      {/* Razor Head 6-Blade */}
+                      <div className="w-20 h-10 bg-gradient-to-r from-stone-800 via-stone-700 to-stone-900 rounded-md border border-stone-600 flex flex-col items-center justify-center p-1 shadow-md">
+                        <div className="w-full h-1 bg-amber-400 rounded-full mb-1"></div>
+                        <div className="flex flex-col gap-0.5 w-full px-1">
+                          {[...Array(6)].map((_, i) => (
+                            <div key={i} className="h-0.5 bg-gradient-to-r from-stone-400 via-stone-200 to-stone-400 rounded-sm"></div>
+                          ))}
+                        </div>
+                      </div>
+                      {/* Razor Neck */}
+                      <div className="w-4 h-5 bg-gradient-to-b from-stone-700 to-stone-800"></div>
+                      {/* Heavyweight Handle */}
+                      <div className="w-6 h-36 bg-gradient-to-b from-stone-900 via-stone-800 to-stone-950 rounded-b-xl border border-stone-700 relative shadow-inner">
+                        {/* Diamond knurling pattern */}
+                        <div className="absolute inset-x-0 top-3 bottom-6 opacity-30 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:4px_4px]"></div>
+                        <div className="absolute bottom-2 inset-x-0 text-center text-[7px] font-black text-stone-400 tracking-widest">DSC</div>
+                      </div>
+                    </div>
+
+                    {/* Shave Butter Tube */}
+                    <div className="w-24 h-44 bg-gradient-to-b from-amber-500 via-amber-600 to-amber-700 rounded-t-2xl rounded-b-md shadow-xl border border-amber-400/50 flex flex-col justify-between p-3 text-white transform rotate-6 group-hover:rotate-0 transition-transform duration-500">
+                      <div className="flex justify-between items-center text-[8px] font-black tracking-widest opacity-80">
+                        <span>DSC</span>
+                        <span>1 OZ</span>
+                      </div>
+                      <div className="my-auto text-center">
+                        <div className="text-[10px] uppercase font-bold tracking-wider text-amber-200">Translucent</div>
+                        <div className="text-sm font-black leading-tight mt-0.5">SHAVE BUTTER</div>
+                        <div className="text-[8px] text-amber-100/90 mt-1">Hydrating Glide</div>
+                      </div>
+                      <div className="h-3 bg-stone-900 rounded-sm mx-auto w-12 border border-stone-800"></div>
+                    </div>
+                  </div>
+
+                  {/* Rating Badge Footer */}
+                  <div className="w-full bg-white/80 backdrop-blur-sm rounded-xl p-3 flex items-center justify-between border border-stone-200/60 z-10 mt-auto">
+                    <div className="flex items-center gap-1">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-3.5 h-3.5 fill-[#FE5000] text-[#FE5000]" />
+                      ))}
+                      <span className="text-xs font-black text-stone-900 ml-1">4.7 / 5.0</span>
+                    </div>
+                    <span className="text-[11px] font-bold text-stone-600">No Frills Starter Set</span>
+                  </div>
+                </div>
+
+                {/* Subtitle features */}
+                <div className="mt-4 flex items-center justify-between text-xs text-stone-500 font-bold">
+                  <span className="flex items-center gap-1 text-emerald-700">
+                    <Check className="w-3.5 h-3.5 stroke-[3]" /> Free Shipping Included
+                  </span>
+                  <span>100% Money-Back Guarantee</span>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column: Copy & Highlights */}
+          <div className="lg:col-span-6 space-y-6 text-center lg:text-left order-1 lg:order-2">
+            
+            {/* Pill badge */}
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-stone-900 text-white text-xs font-black uppercase tracking-wider shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-[#FE5000] animate-pulse"></span>
+              <span>THE ALL-IN-ONE STARTER SET</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-stone-900 tracking-tight leading-[1.1]">
-              A legendary shave. <br className="hidden sm:inline" />
-              <span className="text-amber-600">For five bucks.</span>
+            {/* Main Headline */}
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-stone-900 tracking-tight leading-[1.05] uppercase">
+              A CRAZY-GOOD SHAVE FOR LESS
             </h1>
 
-            <p className="text-lg sm:text-xl text-stone-600 max-w-2xl font-normal leading-relaxed">
-              Stop paying \$25+ in the drugstore shaving aisle. Get our heavyweight diamond-grip metal handle, 4 precision 6-blade cartridges, and member-favorite shave butter delivered to your doorstep.
+            {/* Subtitle */}
+            <p className="text-lg sm:text-xl text-stone-700 font-medium leading-relaxed max-w-xl mx-auto lg:mx-0">
+              Start something smooth with this starter set of shave faves. Get our heavyweight diamond-grip handle, 6-blade razor, and shave butter delivered straight to your door.
             </p>
 
-            {/* Checklist */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 text-sm text-stone-700 font-semibold max-w-lg mx-auto lg:mx-0 text-left">
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                </div>
-                <span>Heavyweight Diamond-Grip Handle</span>
+            {/* Official 3 Highlights from PDF */}
+            <div className="py-4 border-y border-stone-300 grid grid-cols-1 sm:grid-cols-3 gap-4 text-center sm:text-left">
+              <div className="flex flex-col items-center sm:items-start">
+                <span className="text-xl sm:text-2xl font-black text-[#142978]">10 Million</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-600 mt-0.5">
+                  Subscribers Served
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                </div>
-                <span>4x Stainless 6-Blade Cartridges</span>
+
+              <div className="hidden sm:block border-l border-stone-300 pl-4">
+                <span className="text-xl sm:text-2xl font-black text-[#142978]">4.7 Rating</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-600 mt-0.5 block">
+                  Sitewide Reviews
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                </div>
-                <span>Travel Shave Butter (1 oz)</span>
+              <div className="sm:hidden flex flex-col items-center">
+                <span className="text-xl sm:text-2xl font-black text-[#142978]">4.7 Rating</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-600 mt-0.5">
+                  Sitewide Reviews
+                </span>
               </div>
-              <div className="flex items-center gap-2">
-                <div className="w-5 h-5 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
-                  <Check className="w-3.5 h-3.5 stroke-[3]" />
-                </div>
-                <span>Free Shipping &amp; Cancel Anytime</span>
+
+              <div className="hidden sm:block border-l border-stone-300 pl-4">
+                <span className="text-xl sm:text-2xl font-black text-[#142978]">30-Day</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-600 mt-0.5 block">
+                  Money-Back Guarantee
+                </span>
+              </div>
+              <div className="sm:hidden flex flex-col items-center">
+                <span className="text-xl sm:text-2xl font-black text-[#142978]">30-Day</span>
+                <span className="text-xs font-bold uppercase tracking-wider text-stone-600 mt-0.5">
+                  Money-Back Guarantee
+                </span>
               </div>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 pt-4 justify-center lg:justify-start">
+            {/* Action Button & Offer Note */}
+            <div className="flex flex-col sm:flex-row items-center gap-4 pt-2 justify-center lg:justify-start">
               <a
-                href="#blades"
-                className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-8 py-4 rounded-xl text-base font-extrabold bg-amber-600 text-white hover:bg-amber-700 active:scale-[0.99] shadow-lg shadow-amber-600/25 transition-all group"
+                href="#customizer"
+                onClick={scrollToCustomizer}
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-3 px-8 py-4 rounded-xl text-base font-black uppercase tracking-wider bg-[#FE5000] text-white hover:bg-orange-600 active:scale-98 shadow-xl shadow-orange-500/25 transition-all cursor-pointer group"
               >
-                <span>Get Started for $5</span>
+                <span>SELECT YOUR HANDLE</span>
                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
               </a>
 
               <a
-                href="#how-it-works"
-                className="w-full sm:w-auto inline-flex items-center justify-center px-6 py-4 rounded-xl text-base font-bold bg-white text-stone-800 border-2 border-stone-300 hover:border-stone-400 hover:bg-stone-50 transition-all"
+                href="#customizer"
+                onClick={scrollToCustomizer}
+                className="text-sm font-bold text-stone-600 hover:text-stone-900 underline underline-offset-4"
               >
-                How The Club Works
+                Get Started for $5 or $3.99 with Subscription
               </a>
             </div>
 
-            {/* Micro Guarantees */}
-            <div className="pt-4 flex flex-wrap items-center justify-center lg:justify-start gap-6 text-xs text-stone-500 font-medium">
-              <span className="flex items-center gap-1.5">
-                <Truck className="w-4 h-4 text-stone-400" /> Free U.S. Shipping
-              </span>
-              <span className="flex items-center gap-1.5">
-                <RefreshCw className="w-4 h-4 text-stone-400" /> 100% Risk-Free Guarantee
-              </span>
-              <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-stone-400" /> No Commitments, Cancel Anytime
-              </span>
-            </div>
-          </div>
-
-          {/* Right Column: Visual Product Showcase Card */}
-          <div className="lg:col-span-5">
-            <div className="relative mx-auto max-w-md lg:max-w-none">
-              {/* Product Card Container */}
-              <div className="rounded-2xl bg-white border border-stone-200/80 shadow-2xl p-6 sm:p-8 relative overflow-hidden">
-                {/* Badge ribbon */}
-                <div className="absolute -top-1 -right-1">
-                  <div className="bg-amber-600 text-white text-[11px] font-black uppercase tracking-wider py-1.5 px-4 rounded-bl-xl shadow-md">
-                    80% Off Retail
-                  </div>
-                </div>
-
-                {/* Simulated product visual graphic */}
-                <div className="w-full aspect-square bg-gradient-to-br from-stone-800 via-stone-900 to-stone-950 rounded-xl p-6 flex flex-col justify-between text-white relative shadow-inner overflow-hidden border border-stone-700/50">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <span className="text-xs uppercase font-extrabold tracking-widest text-amber-400">STARTER BUNDLE</span>
-                      <h3 className="text-2xl font-black tracking-tight text-white mt-0.5">The 6-Blade Club Kit</h3>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-xs text-stone-400 line-through font-semibold">$24.00</div>
-                      <div className="text-3xl font-black text-amber-400">$5.00</div>
-                    </div>
-                  </div>
-
-                  {/* Visual Illustration */}
-                  <div className="my-auto py-6 flex items-center justify-center gap-4">
-                    <div className="w-16 h-36 bg-gradient-to-b from-stone-400 via-stone-200 to-stone-600 rounded-lg shadow-lg border border-stone-400/40 flex flex-col items-center justify-between py-2 text-stone-800 font-bold text-[9px] uppercase tracking-wider">
-                      <div className="w-12 h-6 bg-stone-300 rounded border border-stone-400 flex items-center justify-center font-black">6X</div>
-                      <div className="h-16 w-2 bg-stone-800/20 rounded"></div>
-                      <div>METAL</div>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <div className="w-24 h-10 bg-amber-500/20 border border-amber-400/40 rounded-lg p-2 flex items-center gap-2 text-amber-200 text-xs font-semibold">
-                        <div className="w-4 h-4 rounded-full bg-amber-400 text-stone-950 flex items-center justify-center font-black text-[9px]">4</div>
-                        <span>Blades</span>
-                      </div>
-                      <div className="w-24 h-10 bg-amber-500/20 border border-amber-400/40 rounded-lg p-2 flex items-center gap-2 text-amber-200 text-xs font-semibold">
-                        <div className="w-4 h-4 rounded-full bg-amber-400 text-stone-950 flex items-center justify-center font-black text-[9px]">1</div>
-                        <span>Butter</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Rating footer */}
-                  <div className="flex items-center justify-between border-t border-stone-800 pt-3">
-                    <div className="flex items-center gap-1 text-amber-400">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} className="w-4 h-4 fill-amber-400" />
-                      ))}
-                      <span className="text-xs font-bold text-white ml-1.5">4.9 / 5.0</span>
-                    </div>
-                    <span className="text-[11px] text-stone-400 font-medium">120,400+ Reviews</span>
-                  </div>
-                </div>
-
-                {/* Subtext info */}
-                <div className="mt-5 space-y-2 text-center text-xs text-stone-500">
-                  <p>Includes ongoing cartridge delivery every 2, 3, or 4 months.</p>
-                  <p className="font-semibold text-stone-700">Change, pause, or cancel anytime in 1 click.</p>
-                </div>
-              </div>
-            </div>
           </div>
 
         </div>

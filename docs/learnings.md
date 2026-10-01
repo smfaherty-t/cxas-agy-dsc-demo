@@ -84,3 +84,10 @@ This document is the repository's permanent institutional memory. Whenever an un
   2. **Lightweight Polling with Diff Detection**: Implement 3-second interval polling (`GET /api/customers`) on the operations dashboard, caching prior address hashes. When a diff is detected, trigger visual CSS animations (`animate-pulse-glow`) and animated toast banners so observers see mutations without page reloads.
   3. **Express 5 Param Normalization**: Always normalize request parameters using `const id = Array.isArray(raw) ? raw[0] : raw;` before passing to services.
 - **Reference**: [GitHub Issue #12](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/12), [GitHub Issue #13](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/13)
+
+### [2026-10-01] Learning 10: React Context Fallbacks for Resilient Isolated Component Testing
+- **Issue**: Introducing a React Context (`CartContext`) across components can break existing isolated unit tests that mount child components (`<Header />`, `<StarterSetConfigurator />`) directly without wrapping them in `<CartProvider>`, resulting in `useCart must be used within a CartProvider` errors.
+- **Mitigation**:
+  1. In the custom hook (`useCart`), return a complete `defaultCartContext` with safe no-op handlers rather than throwing an exception when `useContext` returns `undefined`.
+  2. This preserves full composability and testing ergonomics: components function independently in unit tests without boilerplate mocking, while fully connecting to dynamic application state when rendered inside `<App />` and `<CartProvider>`.
+- **Reference**: [GitHub Issue #14](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/14)
