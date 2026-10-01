@@ -49,4 +49,13 @@ This document is the repository's permanent institutional memory. Whenever an un
   3. Keep container environment variables restricted to application-specific runtime flags (`NODE_ENV`, custom configuration).
 - **Reference**: [GitHub Issue #11](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/11)
 
+### [2026-10-01] Learning 7: CX Agent Studio Web Widget Public Access & Console Multi-Region Visibility
+- **Issue**:
+  1. The web chat widget (`chat-messenger`) fails with errors during user interaction if `channelProfile.webWidgetConfig.securitySettings.enablePublicAccess` is false or omitted (requiring an explicit OAuth bearer token).
+  2. Agents created in multi-region `us` do not show up in the Google Cloud Console if the region filter is set to a regional zone (such as `us-central1`), or if the display name was previously set to an internal ID/label.
+- **Mitigation**:
+  1. For public demo webchats, always explicitly patch `channelProfile.webWidgetConfig.securitySettings.enablePublicAccess = true` on the deployment resource.
+  2. Ensure the app `displayName` matches the official brand name (`Dollar Shave Club`).
+  3. Ensure the Console location dropdown is set to `us` (United States multi-region) or `All locations` when viewing apps.
+
 
