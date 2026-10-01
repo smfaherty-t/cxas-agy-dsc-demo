@@ -11,13 +11,18 @@ export const FAQ: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
 
   const triggerChat = () => {
-    const cm = document.querySelector('chat-messenger');
-    if (cm) {
-      const toggleBtn = cm.querySelector('chat-toggle-dialog-button') as HTMLElement;
-      if (toggleBtn) {
-        toggleBtn.click();
-      } else {
-        cm.setAttribute('opened', 'true');
+    if (typeof (window as unknown as { openCxasChat?: () => void }).openCxasChat === 'function') {
+      (window as unknown as { openCxasChat: () => void }).openCxasChat();
+    } else {
+      const cm = document.querySelector('chat-messenger');
+      if (cm) {
+        cm.classList.remove('dsc-chat-closed');
+        const toggleBtn = cm.querySelector('chat-toggle-dialog-button') as HTMLElement;
+        if (toggleBtn) {
+          toggleBtn.click();
+        } else {
+          cm.setAttribute('opened', 'true');
+        }
       }
     }
   };
@@ -38,7 +43,7 @@ export const FAQ: React.FC = () => {
     },
     {
       question: 'How do I speak with support or get grooming recommendations?',
-      answer: 'You can chat instantly with our 24/7 AI Grooming Advisor (built on Google Cloud CX Agent Studio) right here on the website! Just tap the chat icon in the bottom-right corner to ask questions about blade choices, order status, or skincare tips.',
+      answer: 'You can chat instantly with our 24/7 AI Grooming Advisor (built on Google Cloud CX Agent Studio) right here on the website! Just tap the chat bubble in the lower-left corner to ask questions about blade choices, order status, or skincare tips.',
       hasChatTrigger: true
     },
     {

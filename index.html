@@ -16,8 +16,9 @@
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
 
-    <!-- CX Agent Studio Context Registration and Widget -->
+    <!-- CX Agent Studio Context Registration and Lower-Left Chat Controller -->
     <script>
+      // Register CES context upon chat-messenger SDK load
       window.addEventListener("chat-messenger-loaded", () => {
         if (window.chatSdk && window.chatSdk.registerContext && window.chatSdk.prebuilts) {
           window.chatSdk.registerContext(
@@ -27,9 +28,117 @@
           );
         }
       });
+
+      // Unified Lower-Left Bubble Controller
+      (function() {
+        function initChatController() {
+          const cm = document.querySelector("chat-messenger");
+          const launcher = document.getElementById("cxas-bubble-launcher");
+          if (!cm || !launcher) return;
+
+          // Default state: closed (bubble visible in lower-left)
+          cm.classList.add("dsc-chat-closed");
+          launcher.setAttribute("aria-expanded", "false");
+
+          window.openCxasChat = function(promptText) {
+            cm.classList.remove("dsc-chat-closed");
+            launcher.setAttribute("aria-expanded", "true");
+            if (promptText) {
+              const input = cm.querySelector("chat-messenger-user-input");
+              if (input && typeof input.setInput === "function") {
+                input.setInput(promptText);
+              }
+            }
+          };
+
+          window.closeCxasChat = function() {
+            cm.classList.add("dsc-chat-closed");
+            launcher.setAttribute("aria-expanded", "false");
+          };
+
+          window.toggleCxasChat = function() {
+            if (cm.classList.contains("dsc-chat-closed")) {
+              window.openCxasChat();
+            } else {
+              window.closeCxasChat();
+            }
+          };
+
+          launcher.addEventListener("click", () => {
+            window.toggleCxasChat();
+          });
+
+          // Google CCAI Messenger events
+          cm.addEventListener("chat-messenger-close", () => {
+            window.closeCxasChat();
+          });
+
+          window.addEventListener("chat-messenger-dialog-closed", () => {
+            window.closeCxasChat();
+          });
+
+          window.addEventListener("chat-messenger-dialog-toggled", (e) => {
+            if (e.detail && typeof e.detail.expanded === "boolean") {
+              if (e.detail.expanded) {
+                window.openCxasChat();
+              } else {
+                window.closeCxasChat();
+              }
+            }
+          });
+
+          // Prevent duplicate right-side bubbles if internal wrapper spawns
+          if (cm.shadowRoot) {
+            const shadowStyle = document.createElement("style");
+            shadowStyle.textContent = `
+              .chat-bubble-default-wrapper {
+                position: fixed !important;
+                left: 24px !important;
+                bottom: 24px !important;
+                right: auto !important;
+                display: none !important;
+              }
+            `;
+            cm.shadowRoot.appendChild(shadowStyle);
+          }
+        }
+
+        if (document.readyState === "loading") {
+          document.addEventListener("DOMContentLoaded", initChatController);
+        } else {
+          initChatController();
+        }
+
+        window.addEventListener("chat-messenger-loaded", initChatController);
+      })();
     </script>
+
+    <!-- Lower-Left Floating Chat Bubble Launcher -->
+    <div id="cxas-bubble-container">
+      <button
+        id="cxas-bubble-launcher"
+        type="button"
+        aria-label="Open AI Grooming Advisor chat"
+        aria-expanded="false"
+        class="cxas-bubble-btn"
+      >
+        <div class="cxas-bubble-icon-wrap">
+          <img
+            src="https://gstatic.com/dialogflow-console/common/assets/ccai-favicons/conversational_agents.png"
+            alt="AI Grooming Advisor"
+            class="cxas-bubble-icon"
+          />
+          <span class="cxas-live-indicator"></span>
+        </div>
+        <div class="cxas-bubble-label">
+          <span class="cxas-bubble-badge">AI ADVISOR</span>
+          <span class="cxas-bubble-text">Chat with us</span>
+        </div>
+      </button>
+    </div>
+
     <!-- Update the url-allowlist attribute with a comma-separated list of origins allowed to render images -->
-    <chat-messenger url-allowlist="*">
+    <chat-messenger url-allowlist="*" class="dsc-chat-closed">
       <chat-messenger-container
         chat-title="Dollar Shave Club"
         chat-title-icon="https://gstatic.com/dialogflow-console/common/assets/ccai-favicons/conversational_agents.png"

@@ -3,13 +3,18 @@ import { ShieldCheck, Sparkles, MessageCircle } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const triggerChat = () => {
-    const cm = document.querySelector('chat-messenger');
-    if (cm) {
-      const toggleBtn = cm.querySelector('chat-toggle-dialog-button') as HTMLElement;
-      if (toggleBtn) {
-        toggleBtn.click();
-      } else {
-        cm.setAttribute('opened', 'true');
+    if (typeof (window as unknown as { openCxasChat?: () => void }).openCxasChat === 'function') {
+      (window as unknown as { openCxasChat: () => void }).openCxasChat();
+    } else {
+      const cm = document.querySelector('chat-messenger');
+      if (cm) {
+        cm.classList.remove('dsc-chat-closed');
+        const toggleBtn = cm.querySelector('chat-toggle-dialog-button') as HTMLElement;
+        if (toggleBtn) {
+          toggleBtn.click();
+        } else {
+          cm.setAttribute('opened', 'true');
+        }
       }
     }
   };

@@ -2,14 +2,19 @@ import React from 'react';
 import { Bot, Sparkles, MessageCircle, ArrowUpRight } from 'lucide-react';
 
 export const AIAssistantBanner: React.FC = () => {
-  const openChatWithPrompt = (_promptText: string) => {
-    const cm = document.querySelector('chat-messenger');
-    if (cm) {
-      const toggleBtn = cm.querySelector('chat-toggle-dialog-button') as HTMLElement;
-      if (toggleBtn) {
-        toggleBtn.click();
-      } else {
-        cm.setAttribute('opened', 'true');
+  const openChatWithPrompt = (promptText: string) => {
+    if (typeof (window as unknown as { openCxasChat?: (t: string) => void }).openCxasChat === 'function') {
+      (window as unknown as { openCxasChat: (t: string) => void }).openCxasChat(promptText);
+    } else {
+      const cm = document.querySelector('chat-messenger');
+      if (cm) {
+        cm.classList.remove('dsc-chat-closed');
+        const toggleBtn = cm.querySelector('chat-toggle-dialog-button') as HTMLElement;
+        if (toggleBtn) {
+          toggleBtn.click();
+        } else {
+          cm.setAttribute('opened', 'true');
+        }
       }
     }
   };
@@ -40,7 +45,7 @@ export const AIAssistantBanner: React.FC = () => {
             </h2>
 
             <p className="text-stone-300 text-sm sm:text-base leading-relaxed">
-              Not sure which blade fits your beard density or sensitive skin? Have questions about your delivery frequency? Click the chat button in the bottom right corner anytime to converse with our conversational AI agent.
+              Not sure which blade fits your beard density or sensitive skin? Have questions about your delivery frequency? Click the chat bubble in the lower-left corner anytime to converse with our conversational AI agent.
             </p>
           </div>
 
