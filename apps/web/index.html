@@ -53,7 +53,29 @@
         }
       };
 
+      function findInShadow(node, selector) {
+        if (!node) return null;
+        if (node.querySelector) {
+          const direct = node.querySelector(selector);
+          if (direct) return direct;
+        }
+        const root = node.shadowRoot || node;
+        if (root && root.querySelector) {
+          const directRoot = root.querySelector(selector);
+          if (directRoot) return directRoot;
+        }
+        const children = (root && root.querySelectorAll) ? root.querySelectorAll("*") : [];
+        for (const child of children) {
+          if (child.shadowRoot) {
+            const found = findInShadow(child.shadowRoot, selector);
+            if (found) return found;
+          }
+        }
+        return null;
+      }
+
       window.sendCxasPrompt = function(promptText) {
+        if (!promptText) return;
         const cm = document.querySelector("chat-messenger");
         const launcher = document.getElementById("cxas-bubble-launcher");
         if (cm) {
@@ -67,29 +89,26 @@
         if (wc) wc.classList.add("cxas-welcome-minimized");
 
         setTimeout(() => {
+          if (!cm) return;
+          if (typeof cm.renderCustomText === "function") {
+            try { cm.renderCustomText(promptText, false); } catch (_) {}
+          }
+          if (typeof cm.sendQuery === "function") {
+            try { cm.sendQuery(promptText); return; } catch (_) {}
+          }
           if (window.chatSdk && typeof window.chatSdk.sendMessage === "function") {
             try { window.chatSdk.sendMessage(promptText); return; } catch (_) {}
           }
-          if (cm && typeof cm.sendQuery === "function") {
-            try { cm.sendQuery(promptText); return; } catch (_) {}
-          }
-          const userInput = cm ? cm.querySelector("chat-messenger-user-input") : null;
-          if (userInput) {
-            if (typeof userInput.setInput === "function") {
-              userInput.setInput(promptText);
-            }
-            const root = userInput.shadowRoot || userInput;
-            const sendBtn = root.querySelector("button.send-button, button[aria-label*='Send'], button[type='submit'], .send-icon");
-            if (sendBtn) {
-              sendBtn.click();
-            } else {
-              const textarea = root.querySelector("textarea, input");
-              if (textarea) {
-                textarea.value = promptText;
-                textarea.dispatchEvent(new Event("input", { bubbles: true }));
-                textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", keyCode: 13, which: 13, bubbles: true }));
-              }
-            }
+
+          const inputEl = findInShadow(cm, "textarea, input:not([type='file']):not([type='hidden'])");
+          if (inputEl) {
+            inputEl.value = promptText;
+            inputEl.dispatchEvent(new Event("input", { bubbles: true, composed: true }));
+            inputEl.dispatchEvent(new Event("change", { bubbles: true, composed: true }));
+            inputEl.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", keyCode: 13, which: 13, bubbles: true, composed: true }));
+            const form = inputEl.closest("form") || inputEl.parentElement;
+            const sendBtn = form ? form.querySelector("button, [role='button']") : null;
+            if (sendBtn) sendBtn.click();
           }
         }, 120);
       };
@@ -157,15 +176,20 @@
             e.preventDefault();
             e.stopPropagation();
             const prompt = btn.getAttribute("data-cxas-prompt");
-            const action = btn.getAttribute("data-cxas-action");
-            if (action === "report-damage") {
-              if (typeof window.openDamageReportModal === "function") {
-                window.openDamageReportModal();
-              } else {
-                window.sendCxasPrompt("I need to report a damaged product and upload a photo.");
-              }
-            } else if (prompt) {
+            if (prompt) {
               window.sendCxasPrompt(prompt);
+              if (prompt.includes("damaged product")) {
+                setTimeout(() => {
+                  const cm = document.querySelector("chat-messenger");
+                  const fileInput = findInShadow(cm, "input[type='file']");
+                  if (fileInput) {
+                    fileInput.click();
+                  } else {
+                    const uploadBtn = findInShadow(cm, "button.file-upload-button, button[aria-label*='Upload'], button[aria-label*='Attach'], .file-upload-icon");
+                    if (uploadBtn) uploadBtn.click();
+                  }
+                }, 600);
+              }
             }
           });
         });
@@ -272,18 +296,23 @@
     </div>
 
     <!-- Update the url-allowlist attribute with a comma-separated list of origins allowed to render images -->
-    <chat-messenger url-allowlist="*" class="dsc-chat-closed">
+    <chat-messenger
+      url-allowlist="*"
+      class="dsc-chat-closed"
+      welcome-screen="true"
+      suggested-actions='["Check order status", "Change shipping address", "Order arrived at wrong address"]'
+    >
       <chat-messenger-container
         chat-title="Dollar Shave Club"
         chat-title-icon="https://gstatic.com/dialogflow-console/common/assets/ccai-favicons/conversational_agents.png"
         enable-file-upload
       >
         <!-- Welcome Greeting & Common Inquiries Quick Actions Card -->
-        <div id="cxas-welcome-card" class="cxas-welcome-card" role="region" aria-label="Welcome and quick options">
+        <div id="cxas-welcome-card" slot="messages-header" class="cxas-welcome-card" role="region" aria-label="Welcome and quick options">
           <div class="cxas-welcome-header">
             <div class="cxas-welcome-badge">DOLLAR SHAVE CLUB ASSISTANT</div>
-            <div class="cxas-welcome-title">👋 Welcome to Dollar Shave Club!</div>
-            <div class="cxas-welcome-subtitle">How can we help you today? Choose a common inquiry below or type your message:</div>
+            <div class="cxas-welcome-title">👋 Hey there! Welcome to Dollar Shave Club</div>
+            <div class="cxas-welcome-subtitle">How can we help you look, feel, and smell your best today? Choose an inquiry below or type your message:</div>
           </div>
           <div class="cxas-quick-buttons">
             <button type="button" class="cxas-quick-btn" data-cxas-prompt="Check order status">
@@ -298,7 +327,7 @@
               <span class="cxas-quick-icon">⚠️</span>
               <span>Order arrived at wrong address</span>
             </button>
-            <button type="button" class="cxas-quick-btn" data-cxas-action="report-damage">
+            <button type="button" class="cxas-quick-btn" data-cxas-prompt="I have a damaged product to report and upload a photo for verification">
               <span class="cxas-quick-icon">📸</span>
               <span>Report damaged product</span>
             </button>

@@ -94,7 +94,7 @@ export class DscService {
    */
   public static processReplacement(params: {
     email: string;
-    originalOrderNumber: string;
+    originalOrderNumber?: string;
     reason: string;
     items?: string[];
     newAddress?: string;
@@ -111,17 +111,19 @@ export class DscService {
       targetAddress = params.newAddress.trim();
     }
 
-    const originalOrder = db.findOrderByNumber(params.originalOrderNumber);
+    const customerOrders = db.getOrders().filter(o => o.customerId === customer.id);
+    const orderNumber = params.originalOrderNumber || (customerOrders.length > 0 ? customerOrders[customerOrders.length - 1].orderNumber : "DSC-7721");
+    const originalOrder = db.findOrderByNumber(orderNumber);
     const itemsToReplace = params.items && params.items.length > 0
       ? params.items
       : originalOrder?.items || ["Standard Replacement Box"];
 
-    const replacementCount = db.getReplacements().filter(r => r.originalOrderNumber === params.originalOrderNumber).length;
-    const replacementId = `${params.originalOrderNumber}-R${replacementCount + 1}`;
+    const replacementCount = db.getReplacements().filter(r => r.originalOrderNumber === orderNumber).length;
+    const replacementId = `${orderNumber}-R${replacementCount + 1}`;
 
     const replacement: ReplacementOrder = {
       replacementId,
-      originalOrderNumber: params.originalOrderNumber,
+      originalOrderNumber: orderNumber,
       customerId: customer.id,
       reason: params.reason,
       items: itemsToReplace,

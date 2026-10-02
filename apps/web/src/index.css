@@ -217,21 +217,24 @@ chat-messenger.dsc-chat-closed {
    ========================================================================== */
 
 .cxas-welcome-card {
-  position: absolute;
-  top: 56px;
-  left: 0;
-  right: 0;
+  position: relative;
+  margin: 12px 14px;
   background: linear-gradient(180deg, #1c1917 0%, #24201e 100%);
-  border-bottom: 2px solid #FE5000;
+  border: 1px solid rgba(254, 80, 0, 0.4);
+  border-top: 3px solid #FE5000;
+  border-radius: 12px;
   padding: 14px 16px;
-  z-index: 90;
-  box-shadow: 0 12px 28px -6px rgba(0, 0, 0, 0.55);
+  z-index: 10;
+  box-shadow: 0 8px 24px -4px rgba(0, 0, 0, 0.55);
   transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
 .cxas-welcome-card.cxas-welcome-minimized {
-  padding: 6px 12px;
+  margin: 8px 14px;
+  padding: 8px 12px;
   background: #1c1917;
+  border-top-width: 1px;
   border-bottom: 1px solid rgba(254, 80, 0, 0.4);
 }
 

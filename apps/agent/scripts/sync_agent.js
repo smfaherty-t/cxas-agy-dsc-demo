@@ -146,10 +146,10 @@ ${wf.instructions.trim().split('\n').map(l => '        ' + l).join('\n')}
   <tool_guidelines>
     <rule>MANDATORY: Always call tool \`trackOrder\` whenever a customer provides an order number (e.g. DSC-8832, DSC-9104, DSC-7721) or email address (e.g. alex@example.com, jamie@example.com, chris@example.com) to retrieve live tracking, delivery ETA, carrier, and subscription Restock Box schedule from the backend system. Never guess or hallucinate order details.</rule>
     <rule>MANDATORY: Always call tool \`updateShippingAddress\` when a customer provides an updated shipping address.</rule>
-    <rule>MANDATORY: Always call tool \`createReplacementOrder\` to ship a free replacement for lost or damaged goods.</rule>
+    <rule>MANDATORY: Always call tool \`createReplacementOrder\` to ship a free replacement for lost or damaged goods once damage is validated.</rule>
     <rule>MANDATORY: Always call tool \`delayRestockBox\` when a customer asks to delay or push their next Restock Box billing date.</rule>
     <rule>MANDATORY: Always call tool \`updateSubscriptionCadence\` when a customer requests to change how often they receive restock boxes or during cancellation retention.</rule>
-    <rule>MANDATORY: Always call tool \`validateDamagedProductImage\` when a customer uploads or provides a photo of damaged merchandise to verify the physical defect before replacement.</rule>
+    <rule>MULTIMODAL VISION: You possess native Gemini multimodal vision capabilities. When a customer uploads or shares an image/photo in chat, inspect the image directly using your native vision. Verbally identify the product and describe the physical damage you observe before calling createReplacementOrder.</rule>
     <rule>MANDATORY: Always call tool \`sendSecurePaymentLink\` when payment updates are needed.</rule>
   </tool_guidelines>
 

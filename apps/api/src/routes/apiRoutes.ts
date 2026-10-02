@@ -59,8 +59,8 @@ apiRouter.post('/customers/address', (req: Request, res: Response) => {
 // 3. Process Free Replacement
 apiRouter.post('/orders/replacement', (req: Request, res: Response) => {
   const { email, originalOrderNumber, reason, items, newAddress } = req.body;
-  if (!email || !originalOrderNumber || !reason) {
-    res.status(400).json({ error: 'Missing required parameters: email, originalOrderNumber, reason.' });
+  if (!email || !reason) {
+    res.status(400).json({ error: 'Missing required parameters: email, reason.' });
     return;
   }
 

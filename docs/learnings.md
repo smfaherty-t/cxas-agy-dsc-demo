@@ -103,3 +103,14 @@ This document is the repository's permanent institutional memory. Whenever an un
   3. **Visual Damage Analysis & Verification**: Provide both native file upload in chat and a dedicated interactive Photo Damage Inspection modal (`DamageReportModal`) that inspects uploaded photos using AI vision heuristics (container burst, leaking shave butter, fractured razor collar, crushed packaging), validates damage authenticity with a confidence score, and automatically authorizes free replacement dispatch (`createReplacementOrder`).
 - **Reference**: [GitHub Issue #15](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/15)
 
+### [2026-10-02] Learning 12: Google CCAI Shadow DOM Message Header Slots & Gemini Multimodal Chat Vision
+- **Issue**:
+  1. `<chat-messenger-container>` uses Web Component Shadow DOM. Elements placed in light DOM without a supported slot attribute are ignored and not rendered inside the chat dialog.
+  2. In Google CCAI `<chat-messenger>`, calling `cm.sendQuery(text)` sends the query to the CES backend but does NOT automatically display the user's speech bubble in the transcript.
+  3. When an agent is configured with Gemini (`gemini-3.1-flash-live`), requiring a synthetic external OpenAPI tool for photo analysis creates unnecessary latency and brittle validation failures. Gemini natively inspects multimodal image parts attached to user messages.
+- **Mitigation**:
+  1. **Slotted Message Header**: Provide `slot="messages-header"` on custom greeting/quick-action containers so they project into the top of `#message-list` inside the shadow root.
+  2. **Dual-Dispatch Transcript Rendering**: When programmatically triggering user actions from button clicks, invoke `cm.renderCustomText(text, false)` first to render the customer chat bubble, then dispatch `cm.sendQuery(text)` to invoke CES. Include a recursive shadow root search (`findInShadow`) as fallback.
+  3. **Gemini Multimodal Vision Instructions**: Configure agent instructions to use Gemini's multimodal vision directly on uploaded photos, checking for cracked razor handles, ruptured seals, and leaked contents before invoking `createReplacementOrder`.
+- **Reference**: [GitHub Issue #15](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/15)
+

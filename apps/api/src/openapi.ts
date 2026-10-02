@@ -159,7 +159,7 @@ export const OPENAPI_SPEC = {
             "application/json": {
               schema: {
                 type: "object",
-                required: ["email", "originalOrderNumber", "reason"],
+                required: ["email", "reason"],
                 properties: {
                   email: {
                     type: "string",
