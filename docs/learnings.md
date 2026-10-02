@@ -153,3 +153,20 @@ This document is the repository's permanent institutional memory. Whenever an un
   5. Inject the verified damage and replacement order (`#DSC-7721-R1`) into the conversational session via `window.sendCxasPrompt(...)`, allowing the agent to naturally confirm details in the chat transcript.
 - **Reference**: [GitHub Issue #18](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/18)
 
+### [2026-10-02] Learning 16: Dynamic Gemini Multimodal AI Vision Analysis & Mandatory Pre-Upload Account Gating
+- **Issue**:
+  1. The damage photo validation endpoint was returning the identical static damage assessment ("Shave Butter container rupture with product discharge") and authorizing a replacement order for every uploaded image, regardless of whether the image depicted actual damage, an undamaged item, or a blank photo.
+  2. The service was not prompting for or tying damage claims and replacements to a specific customer account email prior to photo upload.
+- **Root Cause**:
+  1. The server attempted to invoke Vertex AI Gemini using `fileUri: "gs://..."` paths before GCS upload finalized or when using synthetic paths. Vertex AI returned `404 NOT_FOUND`, causing the inspection to return `null` and trigger a hardcoded fallback block that defaulted `isValidDamage = true`.
+  2. No email gating existed in the UI or backend prior to photo upload; claims defaulted to `chris@example.com` without account verification.
+- **Mitigation**:
+  1. **Direct Multimodal Gemini Inspection**: Replaced fragile GCS URI passing with direct inline base64 data (`inlineData: { mimeType, data: base64Data }`) passed to `gemini-3.8-flash` with structured JSON schema and prompt guidelines. Genuine damage returns `isValidDamage: true`, detailed damage description, and confidence score; undamaged/blank photos return `isValidDamage: false`, `recommendedAction: "REJECT_DAMAGE"`, and `replacement: null`.
+  2. **Mandatory Account Email Verification Gate**:
+     - Added `#cxas-email-modal` in the frontend that intercepts photo uploads if `cxas_customer_email` is not set, prompting the user for their account email.
+     - Enforced `body.email` requirement on `/api/damage/validate` (returns `400 Bad Request` with `EMAIL_REQUIRED` if omitted).
+     - Tied authorized replacement orders dynamically to the customer's actual order number (`${orderNumber}-R1`) and shipping address.
+  3. **Distinct Conversational Prompts**: If Gemini confirms damage, the agent is prompted with the authorized replacement order and shipping destination. If Gemini rejects damage, the agent is prompted with Gemini's observation explaining why damage was not detected and offering next steps.
+- **Reference**: [GitHub Issue #19](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/19)
+
+
