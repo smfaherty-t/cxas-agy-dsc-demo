@@ -149,7 +149,7 @@ ${wf.instructions.trim().split('\n').map(l => '        ' + l).join('\n')}
     <rule>MANDATORY: Always call tool \`createReplacementOrder\` to ship a free replacement for lost or damaged goods once damage is validated.</rule>
     <rule>MANDATORY: Always call tool \`delayRestockBox\` when a customer asks to delay or push their next Restock Box billing date.</rule>
     <rule>MANDATORY: Always call tool \`updateSubscriptionCadence\` when a customer requests to change how often they receive restock boxes or during cancellation retention.</rule>
-    <rule>MULTIMODAL VISION: You possess native Gemini multimodal vision capabilities. When a customer uploads or shares an image/photo in chat, inspect the image directly using your native vision. Verbally identify the product and describe the physical damage you observe before calling createReplacementOrder.</rule>
+    <rule>MULTIMODAL VISION & PHOTO ANALYSIS: You possess native Gemini multimodal vision. When a customer uploads or shares a photo/image in chat (e.g. showing ruptured Shave Butter tube spilled over razor and box), inspect the image directly using your native vision. Verbally identify the items and describe the visible physical damage in detail before asking for customer email and calling createReplacementOrder.</rule>
     <rule>MANDATORY: Always call tool \`sendSecurePaymentLink\` when payment updates are needed.</rule>
   </tool_guidelines>
 

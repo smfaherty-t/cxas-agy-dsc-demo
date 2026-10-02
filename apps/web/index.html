@@ -178,18 +178,6 @@
             const prompt = btn.getAttribute("data-cxas-prompt");
             if (prompt) {
               window.sendCxasPrompt(prompt);
-              if (prompt.includes("damaged product")) {
-                setTimeout(() => {
-                  const cm = document.querySelector("chat-messenger");
-                  const fileInput = findInShadow(cm, "input[type='file']");
-                  if (fileInput) {
-                    fileInput.click();
-                  } else {
-                    const uploadBtn = findInShadow(cm, "button.file-upload-button, button[aria-label*='Upload'], button[aria-label*='Attach'], .file-upload-icon");
-                    if (uploadBtn) uploadBtn.click();
-                  }
-                }, 600);
-              }
             }
           });
         });
@@ -210,6 +198,7 @@
         initCxasBubbleController();
       }
       window.addEventListener("chat-messenger-loaded", initCxasBubbleController);
+      window.addEventListener("chat-messenger-message-list-loaded", initWelcomeButtons);
 
       // Register CES context and acquire public chat session token upon chat-messenger SDK load
       async function initializeCxasChatContext() {
@@ -297,47 +286,41 @@
 
     <!-- Update the url-allowlist attribute with a comma-separated list of origins allowed to render images -->
     <chat-messenger
+      service='{"name":"ces","deployment-id":"projects/137470913560/locations/us/apps/82a19631-fe39-40fa-a593-60778d958407/deployments/93ef4da3-d0a5-4db9-b686-cb0f5a2537fb"}'
+      enable-file-upload="true"
       url-allowlist="*"
       class="dsc-chat-closed"
       welcome-screen="true"
-      suggested-actions='["Check order status", "Change shipping address", "Order arrived at wrong address"]'
+      suggested-actions='["Check order status", "I need to change my shipping address", "My order arrived at the wrong address"]'
     >
+      <!-- Welcome Greeting & Common Inquiries Quick Actions Card -->
+      <div id="cxas-welcome-card" slot="messages-header" class="cxas-welcome-card" role="region" aria-label="Welcome and quick options">
+        <div class="cxas-welcome-header">
+          <div class="cxas-welcome-badge">DOLLAR SHAVE CLUB ASSISTANT</div>
+          <div class="cxas-welcome-title">👋 Hey there! Welcome to Dollar Shave Club</div>
+          <div class="cxas-welcome-subtitle">How can we help you look, feel, and smell your best today? Choose an inquiry below or type your message:</div>
+        </div>
+        <div class="cxas-quick-buttons">
+          <button type="button" class="cxas-quick-btn" data-cxas-prompt="Check order status">
+            <span class="cxas-quick-icon">📦</span>
+            <span>Order status</span>
+          </button>
+          <button type="button" class="cxas-quick-btn" data-cxas-prompt="I need to change my shipping address">
+            <span class="cxas-quick-icon">📍</span>
+            <span>Change address</span>
+          </button>
+          <button type="button" class="cxas-quick-btn" data-cxas-prompt="My order arrived at the wrong address">
+            <span class="cxas-quick-icon">⚠️</span>
+            <span>Order arrived at wrong address</span>
+          </button>
+        </div>
+      </div>
+
       <chat-messenger-container
         chat-title="Dollar Shave Club"
         chat-title-icon="https://gstatic.com/dialogflow-console/common/assets/ccai-favicons/conversational_agents.png"
-        enable-file-upload
+        enable-file-upload="true"
       >
-        <!-- Welcome Greeting & Common Inquiries Quick Actions Card -->
-        <div id="cxas-welcome-card" slot="messages-header" class="cxas-welcome-card" role="region" aria-label="Welcome and quick options">
-          <div class="cxas-welcome-header">
-            <div class="cxas-welcome-badge">DOLLAR SHAVE CLUB ASSISTANT</div>
-            <div class="cxas-welcome-title">👋 Hey there! Welcome to Dollar Shave Club</div>
-            <div class="cxas-welcome-subtitle">How can we help you look, feel, and smell your best today? Choose an inquiry below or type your message:</div>
-          </div>
-          <div class="cxas-quick-buttons">
-            <button type="button" class="cxas-quick-btn" data-cxas-prompt="Check order status">
-              <span class="cxas-quick-icon">📦</span>
-              <span>Order status</span>
-            </button>
-            <button type="button" class="cxas-quick-btn" data-cxas-prompt="I need to change my shipping address">
-              <span class="cxas-quick-icon">📍</span>
-              <span>Change address</span>
-            </button>
-            <button type="button" class="cxas-quick-btn" data-cxas-prompt="My order arrived at the wrong address">
-              <span class="cxas-quick-icon">⚠️</span>
-              <span>Order arrived at wrong address</span>
-            </button>
-            <button type="button" class="cxas-quick-btn" data-cxas-prompt="I have a damaged product to report and upload a photo for verification">
-              <span class="cxas-quick-icon">📸</span>
-              <span>Report damaged product</span>
-            </button>
-            <button type="button" class="cxas-quick-btn" data-cxas-prompt="I want to cancel my subscription">
-              <span class="cxas-quick-icon">🛑</span>
-              <span>Cancel / Pause subscription</span>
-            </button>
-          </div>
-        </div>
-
         <chat-reset-session-button
           slot="titlebar-actions"
           title-text="Start new chat"

@@ -114,3 +114,16 @@ This document is the repository's permanent institutional memory. Whenever an un
   3. **Gemini Multimodal Vision Instructions**: Configure agent instructions to use Gemini's multimodal vision directly on uploaded photos, checking for cracked razor handles, ruptured seals, and leaked contents before invoking `createReplacementOrder`.
 - **Reference**: [GitHub Issue #15](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/15)
 
+### [2026-10-02] Learning 13: CX Agent Studio Multimodal Photo Upload Protocol (`service` Attribute & Direct Slotting)
+- **Issue**:
+  1. In Google Cloud CX Agent Studio (`chat-messenger.js`), selecting a photo for damage inspection resulted in an immediate client-side rejection: `Error: sendImage is only supported for CES service, but current service is dialogflow`.
+  2. Custom welcome card buttons were nested inside `<chat-messenger-container>`, preventing `<chat-messenger>`'s shadow DOM from projecting `slot="messages-header"` into the message list.
+- **Root Cause**:
+  1. `<chat-messenger>` defaults its service type to `dialogflow` unless explicitly supplied with the CES service JSON attribute: `service='{"name":"ces","deployment-id":"projects/PROJECT_ID/locations/REGION/apps/APP_ID/deployments/DEPLOYMENT_ID"}'`. `sendImage` strictly gates upload execution on `service.name === "ces"`.
+  2. In the CCAI Web Component hierarchy, `<chat-messenger>`'s shadow root forwards `slot="messages-header"` only from its direct children to `<chat-messenger-container>`, which then forwards it to `<chat-messenger-message-list>`.
+- **Mitigation**:
+  1. Always declare `service='{"name":"ces","deployment-id":"..."}'` and `enable-file-upload="true"` directly on `<chat-messenger>`.
+  2. Place `#cxas-welcome-card` with `slot="messages-header"` as a direct child of `<chat-messenger>`.
+  3. Listen to both `chat-messenger-loaded` and `chat-messenger-message-list-loaded` events to ensure interactive inquiry buttons are bound immediately upon message list attachment.
+- **Reference**: [GitHub Issue #16](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/16)
+
