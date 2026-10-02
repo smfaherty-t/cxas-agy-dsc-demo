@@ -91,3 +91,15 @@ This document is the repository's permanent institutional memory. Whenever an un
   1. In the custom hook (`useCart`), return a complete `defaultCartContext` with safe no-op handlers rather than throwing an exception when `useContext` returns `undefined`.
   2. This preserves full composability and testing ergonomics: components function independently in unit tests without boilerplate mocking, while fully connecting to dynamic application state when rendered inside `<App />` and `<CartProvider>`.
 - **Reference**: [GitHub Issue #14](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/14)
+
+### [2026-10-02] Learning 11: CXAS Welcome Cards, Retention Workflows, and Multi-Modal Visual Damage Analysis
+- **Issue**:
+  1. Standard conversational agent chat containers open with an empty canvas or blank prompt line, leaving customers unsure what actions they can take.
+  2. Immediate cancellation requests cause unnecessary subscription churn if the agent executes cancellation without presenting retention alternatives (box delay or cadence adjustment).
+  3. Processing damaged merchandise claims without physical verification exposes retail subscriptions to fraudulent replacement claims.
+- **Mitigation**:
+  1. **Docked Welcome Greeting & Quick Inquiries Card**: Render a dedicated branded greeting card (`#cxas-welcome-card`) inside `<chat-messenger-container>`. Provide interactive quick buttons for top inquiries (`Order status`, `Change address`, `Order arrived at wrong address`, `Report damaged product`, `Cancel / Pause subscription`). Clicking any button immediately dispatches that content into the conversational session and smoothly transitions the card to a compact horizontal chip tray so the message transcript remains unobstructed.
+  2. **Subscription Retention Gate**: Enforce guardrails in the agent instruction set requiring the agent to ALWAYS offer to delay the upcoming Restock Box (`delayRestockBox`) or change delivery cadence (`updateSubscriptionCadence` to Every 2 Months or Every 3 Months) before processing cancellation requests.
+  3. **Visual Damage Analysis & Verification**: Provide both native file upload in chat and a dedicated interactive Photo Damage Inspection modal (`DamageReportModal`) that inspects uploaded photos using AI vision heuristics (container burst, leaking shave butter, fractured razor collar, crushed packaging), validates damage authenticity with a confidence score, and automatically authorizes free replacement dispatch (`createReplacementOrder`).
+- **Reference**: [GitHub Issue #15](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/15)
+
