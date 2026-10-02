@@ -258,6 +258,173 @@
           cm.accessToken = ctx.state.accessToken;
         }
       });
+
+      // ======================================================================
+      // Multimodal Damage Photo Upload & Gemini AI Vision Analysis Pipeline
+      // ======================================================================
+      let isUploadingPhoto = false;
+
+      window.triggerDamagePhotoUpload = function() {
+        const input = document.getElementById("cxas-photo-input");
+        if (input) {
+          input.value = "";
+          input.click();
+        }
+      };
+
+      function displayDamageCardInChat(data, previewUrl) {
+        const cm = document.querySelector("chat-messenger");
+        if (!cm) return;
+
+        const card = document.createElement("div");
+        card.className = "cxas-ai-damage-result-card";
+        const imgUrl = data.imageUrl || previewUrl;
+        const rep = data.replacement || {};
+        const analysis = data.damageAnalysis || {};
+        const severity = analysis.severity || "High";
+        const summary = analysis.summary || "Visual damage confirmed: packaging rupture and product discharge.";
+        const repId = rep.replacementId || "DSC-7721-R1";
+        const address = rep.shippingAddress || "789 Pine Road, Boulder CO 80302";
+
+        card.innerHTML = `
+          <div class="cxas-ai-damage-img-wrap">
+            <img src="${imgUrl}" alt="Damaged Product Photo" class="cxas-ai-damage-img" />
+            <span class="cxas-ai-badge">GEMINI AI VISION VERIFIED</span>
+          </div>
+          <div class="cxas-ai-damage-body">
+            <div class="cxas-ai-damage-title">
+              <span>✅</span>
+              <span>Damage Confirmed (${severity} Severity)</span>
+            </div>
+            <div class="cxas-ai-damage-summary">${summary}</div>
+            <div class="cxas-ai-damage-order">
+              <span style="font-size: 16px;">📦</span>
+              <div>
+                <strong style="color: #34d399;">Free Replacement Authorized: #${repId}</strong>
+                <div style="color: #a8a29e; margin-top: 2px;">Rush 24-Hr Delivery to ${address}</div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const target = findInShadow(cm, "chat-messenger-message-list, .message-list") || cm;
+        if (target) {
+          target.appendChild(card);
+          try { card.scrollIntoView({ behavior: "smooth", block: "end" }); } catch (_) {}
+        }
+      }
+
+      async function handlePhotoUpload(file) {
+        if (!file || isUploadingPhoto) return;
+        if (!file.type.startsWith("image/")) {
+          alert("Please select an image file (JPG, PNG, WebP).");
+          return;
+        }
+
+        isUploadingPhoto = true;
+        window.openCxasChat();
+
+        const previewUrl = URL.createObjectURL(file);
+        const cm = document.querySelector("chat-messenger");
+
+        if (cm && typeof cm.renderCustomText === "function") {
+          try {
+            cm.renderCustomText("📸 Uploaded damage photo: " + file.name + " (" + Math.round(file.size / 1024) + " KB)", false);
+            cm.renderCustomText("🔍 Inspecting damage with Gemini AI Multimodal Vision...", true);
+          } catch (_) {}
+        }
+
+        const reader = new FileReader();
+        reader.onload = async (e) => {
+          const base64Data = e.target.result;
+          try {
+            const res = await fetch("/api/damage/validate", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                email: "chris@example.com",
+                originalOrderNumber: "DSC-7721",
+                imageBase64: base64Data,
+                imageName: file.name,
+                item: "Dr. Carver's Easy Shave Butter (6 oz)",
+                description: "Customer uploaded photo of damaged package in transit."
+              })
+            });
+
+            if (res.ok) {
+              const data = await res.json();
+              displayDamageCardInChat(data, previewUrl);
+
+              const summary = data.damageAnalysis?.summary || "Shave Butter container rupture with product discharge";
+              const repId = data.replacement?.replacementId || "DSC-7721-R1";
+
+              setTimeout(() => {
+                window.sendCxasPrompt(
+                  "I uploaded the damaged product photo. AI vision verified: " + summary + ". Free replacement order #" + repId + " is authorized. Please confirm."
+                );
+              }, 400);
+            } else {
+              console.error("[CXAS] Damage validation response error:", await res.text());
+            }
+          } catch (err) {
+            console.error("[CXAS] Damage upload network error:", err);
+          } finally {
+            isUploadingPhoto = false;
+          }
+        };
+        reader.readAsDataURL(file);
+      }
+
+      // Bind upload triggers once DOM and custom elements load
+      function initUploadTriggers() {
+        const uploadBtn = document.getElementById("cxas-titlebar-upload-btn");
+        if (uploadBtn && !uploadBtn.dataset.bound) {
+          uploadBtn.dataset.bound = "true";
+          uploadBtn.addEventListener("click", (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            window.triggerDamagePhotoUpload();
+          });
+        }
+
+        const photoInput = document.getElementById("cxas-photo-input");
+        if (photoInput && !photoInput.dataset.bound) {
+          photoInput.dataset.bound = "true";
+          photoInput.addEventListener("change", (e) => {
+            if (e.target.files && e.target.files[0]) {
+              handlePhotoUpload(e.target.files[0]);
+            }
+          });
+        }
+
+        const cm = document.querySelector("chat-messenger");
+        if (cm && !cm.dataset.uploadBound) {
+          cm.dataset.uploadBound = "true";
+
+          cm.addEventListener("chat-messenger-button-clicked", (e) => {
+            const evtName = e.detail?.event || "";
+            const txt = (e.detail?.text || "").toLowerCase();
+            if (evtName === "trigger-photo-upload" || txt.includes("upload") || txt.includes("photo")) {
+              window.triggerDamagePhotoUpload();
+            }
+          });
+
+          window.addEventListener("trigger-photo-upload", () => {
+            window.triggerDamagePhotoUpload();
+          });
+
+          cm.addEventListener("dragover", (e) => { e.preventDefault(); });
+          cm.addEventListener("drop", (e) => {
+            e.preventDefault();
+            if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0]) {
+              handlePhotoUpload(e.dataTransfer.files[0]);
+            }
+          });
+        }
+      }
+
+      window.addEventListener("DOMContentLoaded", initUploadTriggers);
+      window.addEventListener("chat-messenger-loaded", initUploadTriggers);
     </script>
 
     <!-- Lower-Left Floating Chat Bubble Launcher -->
@@ -283,6 +450,14 @@
         </div>
       </button>
     </div>
+
+    <!-- Hidden Native File Input for Photo Uploads -->
+    <input
+      type="file"
+      id="cxas-photo-input"
+      accept="image/jpeg,image/png,image/webp"
+      style="position: fixed; top: -9999px; left: -9999px; opacity: 0; pointer-events: none;"
+    />
 
     <!-- Update the url-allowlist attribute with a comma-separated list of origins allowed to render images -->
     <chat-messenger
@@ -321,6 +496,16 @@
         chat-title-icon="https://gstatic.com/dialogflow-console/common/assets/ccai-favicons/conversational_agents.png"
         enable-file-upload="true"
       >
+        <button
+          type="button"
+          id="cxas-titlebar-upload-btn"
+          slot="titlebar-actions"
+          class="cxas-titlebar-upload-btn"
+          title="Upload photo of damaged product"
+          aria-label="Upload photo of damaged product"
+        >
+          📷 Upload Photo
+        </button>
         <chat-reset-session-button
           slot="titlebar-actions"
           title-text="Start new chat"

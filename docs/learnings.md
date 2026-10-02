@@ -127,3 +127,15 @@ This document is the repository's permanent institutional memory. Whenever an un
   3. Listen to both `chat-messenger-loaded` and `chat-messenger-message-list-loaded` events to ensure interactive inquiry buttons are bound immediately upon message list attachment.
 - **Reference**: [GitHub Issue #16](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/16)
 
+### [2026-10-02] Learning 14: Asynchronous Multimodal Image Architecture for Conversational Agents
+- **Issue**: Standard conversational agent streams and CCAI Web Messenger streaming endpoints (`sendImage` over bidirectional SSE/WebSocket connections) cannot handle raw binary image streams inside standard text query payloads without throwing client connection errors or dropping image parts.
+- **Root Cause**:
+  1. Chatbot interfaces operate over textual turn-by-turn protocols; injecting mega-byte binary payloads directly into live streaming session frames can saturate or break the session pipe.
+  2. Per Google Cloud architecture guidance, robust multimodal processing requires an asynchronous multi-step pipeline: client-side interception -> cloud storage persistence -> backend multimodal model invocation (Vertex AI Gemini) -> verified outcome injection into session context.
+- **Mitigation**:
+  1. **Client-Side Interception**: Intercept file selections via a titlebar action button (`#cxas-titlebar-upload-btn`), custom events (`trigger-photo-upload`, `chat-messenger-button-clicked`), and drag-and-drop.
+  2. **Cloud Storage Pipeline**: Persist customer-uploaded damage photos to a dedicated GCS bucket (`gs://sa-training-466722-damage-photos/`) with web CORS enabled.
+  3. **Vertex AI Gemini Multimodal Inspection**: Call `gemini-2.5-flash:generateContent` using project credentials, supplying the image part (`fileData` URI or inline base64) alongside structured damage assessment instructions.
+  4. **Context Injection & Rich Visual Feedback**: Render an inline visual card with the image thumbnail, severity rating, and authorized replacement ID (`#DSC-7721-R1`) directly inside the chat interface, and send the verified result into the agent session for seamless confirmation.
+- **Reference**: [GitHub Issue #17](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/17)
+

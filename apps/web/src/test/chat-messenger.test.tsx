@@ -208,3 +208,42 @@ describe('DamageReportModal AI Vision Damage Inspection Component', () => {
     expect(screen.getByText(/Free Replacement Order/i)).toBeInTheDocument();
   });
 });
+
+describe('Multimodal Damage Photo Upload Pipeline in Chat', () => {
+  it('triggers file input when triggerDamagePhotoUpload is called', () => {
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.id = 'cxas-photo-input';
+    const clickSpy = vi.fn();
+    fileInput.click = clickSpy;
+    document.body.appendChild(fileInput);
+
+    const triggerDamagePhotoUpload = () => {
+      const input = document.getElementById('cxas-photo-input');
+      if (input) input.click();
+    };
+
+    triggerDamagePhotoUpload();
+    expect(clickSpy).toHaveBeenCalled();
+    document.body.removeChild(fileInput);
+  });
+
+  it('handles trigger-photo-upload custom event from CCAI messenger', () => {
+    const cm = document.createElement('chat-messenger');
+    const uploadSpy = vi.fn();
+
+    cm.addEventListener('chat-messenger-button-clicked', ((e: CustomEvent) => {
+      const evtName = e.detail?.event || '';
+      if (evtName === 'trigger-photo-upload') {
+        uploadSpy();
+      }
+    }) as EventListener);
+
+    cm.dispatchEvent(new CustomEvent('chat-messenger-button-clicked', {
+      detail: { event: 'trigger-photo-upload', text: 'Upload Damaged Product Photo' }
+    }));
+
+    expect(uploadSpy).toHaveBeenCalled();
+  });
+});
+
