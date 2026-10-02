@@ -10,6 +10,7 @@
     <script defer src="https://www.gstatic.com/chat-messenger/sdk/prod/v1.16/chat-messenger.js"></script>
     <link rel="stylesheet" href="https://www.gstatic.com/chat-messenger/sdk/prod/v1.16/themes/chat-messenger-default.css">
     <link rel="stylesheet" href="https://www.gstatic.com/chat-messenger/sdk/prod/v1.16/themes/chat-messenger-layout.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Google+Symbols:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
   </head>
   <body class="bg-stone-50 text-stone-900 antialiased selection:bg-amber-500 selection:text-white">
     <div id="root"></div>
@@ -265,6 +266,13 @@
       let isUploadingPhoto = false;
 
       window.triggerDamagePhotoUpload = function() {
+        window.openCxasChat();
+        const cm = document.querySelector("chat-messenger");
+        const uploadBtn = findInShadow(cm, "#upload-button, .upload-icon-button-wrapper button");
+        if (uploadBtn) {
+          uploadBtn.click();
+          return;
+        }
         const input = document.getElementById("cxas-photo-input");
         if (input) {
           input.value = "";
@@ -272,49 +280,7 @@
         }
       };
 
-      function displayDamageCardInChat(data, previewUrl) {
-        const cm = document.querySelector("chat-messenger");
-        if (!cm) return;
-
-        const card = document.createElement("div");
-        card.className = "cxas-ai-damage-result-card";
-        const imgUrl = data.imageUrl || previewUrl;
-        const rep = data.replacement || {};
-        const analysis = data.damageAnalysis || {};
-        const severity = analysis.severity || "High";
-        const summary = analysis.summary || "Visual damage confirmed: packaging rupture and product discharge.";
-        const repId = rep.replacementId || "DSC-7721-R1";
-        const address = rep.shippingAddress || "789 Pine Road, Boulder CO 80302";
-
-        card.innerHTML = `
-          <div class="cxas-ai-damage-img-wrap">
-            <img src="${imgUrl}" alt="Damaged Product Photo" class="cxas-ai-damage-img" />
-            <span class="cxas-ai-badge">GEMINI AI VISION VERIFIED</span>
-          </div>
-          <div class="cxas-ai-damage-body">
-            <div class="cxas-ai-damage-title">
-              <span>✅</span>
-              <span>Damage Confirmed (${severity} Severity)</span>
-            </div>
-            <div class="cxas-ai-damage-summary">${summary}</div>
-            <div class="cxas-ai-damage-order">
-              <span style="font-size: 16px;">📦</span>
-              <div>
-                <strong style="color: #34d399;">Free Replacement Authorized: #${repId}</strong>
-                <div style="color: #a8a29e; margin-top: 2px;">Rush 24-Hr Delivery to ${address}</div>
-              </div>
-            </div>
-          </div>
-        `;
-
-        const target = findInShadow(cm, "chat-messenger-message-list, .message-list") || cm;
-        if (target) {
-          target.appendChild(card);
-          try { card.scrollIntoView({ behavior: "smooth", block: "end" }); } catch (_) {}
-        }
-      }
-
-      async function handlePhotoUpload(file) {
+      async function handlePhotoUpload(file, userCaption) {
         if (!file || isUploadingPhoto) return;
         if (!file.type.startsWith("image/")) {
           alert("Please select an image file (JPG, PNG, WebP).");
@@ -324,19 +290,20 @@
         isUploadingPhoto = true;
         window.openCxasChat();
 
-        const previewUrl = URL.createObjectURL(file);
         const cm = document.querySelector("chat-messenger");
-
-        if (cm && typeof cm.renderCustomText === "function") {
-          try {
-            cm.renderCustomText("📸 Uploaded damage photo: " + file.name + " (" + Math.round(file.size / 1024) + " KB)", false);
-            cm.renderCustomText("🔍 Inspecting damage with Gemini AI Multimodal Vision...", true);
-          } catch (_) {}
-        }
 
         const reader = new FileReader();
         reader.onload = async (e) => {
           const base64Data = e.target.result;
+
+          // Render image bubble if not already handled by CCAI messenger
+          if (cm && typeof cm.renderImageMessage === "function" && !window.__lastRenderedPhotoName) {
+            try {
+              window.__lastRenderedPhotoName = file.name;
+              cm.renderImageMessage(base64Data, file.type);
+            } catch (_) {}
+          }
+
           try {
             const res = await fetch("/api/damage/validate", {
               method: "POST",
@@ -347,20 +314,20 @@
                 imageBase64: base64Data,
                 imageName: file.name,
                 item: "Dr. Carver's Easy Shave Butter (6 oz)",
-                description: "Customer uploaded photo of damaged package in transit."
+                description: userCaption || "Customer uploaded photo of damaged package in transit."
               })
             });
 
             if (res.ok) {
               const data = await res.json();
-              displayDamageCardInChat(data, previewUrl);
-
+              // Communicates verification conversationally with zero pop-up cards
               const summary = data.damageAnalysis?.summary || "Shave Butter container rupture with product discharge";
               const repId = data.replacement?.replacementId || "DSC-7721-R1";
+              const address = data.replacement?.shippingAddress || "789 Pine Road, Boulder CO 80302";
 
               setTimeout(() => {
                 window.sendCxasPrompt(
-                  "I uploaded the damaged product photo. AI vision verified: " + summary + ". Free replacement order #" + repId + " is authorized. Please confirm."
+                  "I uploaded the damaged product photo. AI vision verified: " + summary + ". Free replacement order #" + repId + " is authorized for delivery to " + address + ". Please confirm."
                 );
               }, 400);
             } else {
@@ -370,22 +337,57 @@
             console.error("[CXAS] Damage upload network error:", err);
           } finally {
             isUploadingPhoto = false;
+            setTimeout(() => { window.__lastRenderedPhotoName = null; }, 2000);
           }
         };
         reader.readAsDataURL(file);
       }
 
+      function hookChatMessengerUpload() {
+        const cm = document.querySelector("chat-messenger");
+        if (!cm) return;
+
+        // 1. Hook the CCAI presenter's sendImage to process via our Gemini AI pipeline
+        const presenter = cm.presenter || cm.v?.presenter;
+        if (presenter && !presenter.__cxasSendImageHooked) {
+          presenter.__cxasSendImageHooked = true;
+          presenter.sendImage = async function(file, query) {
+            console.log("[CXAS] Intercepted presenter.sendImage:", file?.name, query);
+            window.__lastRenderedPhotoName = file?.name;
+            handlePhotoUpload(file, query);
+            return Promise.resolve();
+          };
+        }
+
+        // 2. Hook file selection on the native input inside the chat shadow DOM
+        const userInput = findInShadow(cm, "chat-messenger-user-input");
+        if (userInput && userInput.shadowRoot && !userInput.dataset.photoHooked) {
+          userInput.dataset.photoHooked = "true";
+          const fileInput = userInput.shadowRoot.querySelector('input[type="file"]');
+          if (fileInput) {
+            fileInput.addEventListener("change", (e) => {
+              if (e.target.files && e.target.files[0]) {
+                const pickedFile = e.target.files[0];
+                console.log("[CXAS] Photo chosen via chat input + button:", pickedFile.name);
+                // When chosen via +, if the customer doesn't click Send or type within 1.5s, auto-send
+                setTimeout(() => {
+                  const sendBtn = userInput.shadowRoot.querySelector("#send-icon-button");
+                  const textarea = userInput.shadowRoot.querySelector("textarea");
+                  const isTyping = textarea && textarea.value && textarea.value.trim().length > 0;
+                  if (!isTyping && sendBtn && !sendBtn.disabled && userInput.file === pickedFile) {
+                    console.log("[CXAS] Auto-submitting photo for verification");
+                    sendBtn.click();
+                  }
+                }, 1500);
+              }
+            });
+          }
+        }
+      }
+
       // Bind upload triggers once DOM and custom elements load
       function initUploadTriggers() {
-        const uploadBtn = document.getElementById("cxas-titlebar-upload-btn");
-        if (uploadBtn && !uploadBtn.dataset.bound) {
-          uploadBtn.dataset.bound = "true";
-          uploadBtn.addEventListener("click", (e) => {
-            e.preventDefault();
-            e.stopPropagation();
-            window.triggerDamagePhotoUpload();
-          });
-        }
+        hookChatMessengerUpload();
 
         const photoInput = document.getElementById("cxas-photo-input");
         if (photoInput && !photoInput.dataset.bound) {
@@ -400,6 +402,19 @@
         const cm = document.querySelector("chat-messenger");
         if (cm && !cm.dataset.uploadBound) {
           cm.dataset.uploadBound = "true";
+
+          cm.addEventListener("chat-messenger-upload-file-selected", (e) => {
+            if (e.detail?.file) {
+              console.log("[CXAS] chat-messenger-upload-file-selected:", e.detail.file.name);
+            }
+          });
+
+          cm.addEventListener("chat-messenger-file-upload-completed", (e) => {
+            if (e.detail?.file) {
+              console.log("[CXAS] chat-messenger-file-upload-completed:", e.detail.file.name);
+              handlePhotoUpload(e.detail.file, e.detail.query);
+            }
+          });
 
           cm.addEventListener("chat-messenger-button-clicked", (e) => {
             const evtName = e.detail?.event || "";
@@ -424,7 +439,22 @@
       }
 
       window.addEventListener("DOMContentLoaded", initUploadTriggers);
-      window.addEventListener("chat-messenger-loaded", initUploadTriggers);
+      window.addEventListener("chat-messenger-loaded", () => {
+        initUploadTriggers();
+        hookChatMessengerUpload();
+      });
+
+      // Periodic check during initialization to hook presenter as soon as CCAI is ready
+      const hookInterval = setInterval(() => {
+        const cm = document.querySelector("chat-messenger");
+        const presenter = cm?.presenter || cm?.v?.presenter;
+        if (presenter && presenter.__cxasSendImageHooked) {
+          clearInterval(hookInterval);
+        } else {
+          hookChatMessengerUpload();
+        }
+      }, 300);
+      setTimeout(() => clearInterval(hookInterval), 6000);
     </script>
 
     <!-- Lower-Left Floating Chat Bubble Launcher -->
@@ -496,16 +526,6 @@
         chat-title-icon="https://gstatic.com/dialogflow-console/common/assets/ccai-favicons/conversational_agents.png"
         enable-file-upload="true"
       >
-        <button
-          type="button"
-          id="cxas-titlebar-upload-btn"
-          slot="titlebar-actions"
-          class="cxas-titlebar-upload-btn"
-          title="Upload photo of damaged product"
-          aria-label="Upload photo of damaged product"
-        >
-          📷 Upload Photo
-        </button>
         <chat-reset-session-button
           slot="titlebar-actions"
           title-text="Start new chat"

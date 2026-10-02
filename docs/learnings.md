@@ -139,3 +139,17 @@ This document is the repository's permanent institutional memory. Whenever an un
   4. **Context Injection & Rich Visual Feedback**: Render an inline visual card with the image thumbnail, severity rating, and authorized replacement ID (`#DSC-7721-R1`) directly inside the chat interface, and send the verified result into the agent session for seamless confirmation.
 - **Reference**: [GitHub Issue #17](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/17)
 
+### [2026-10-02] Learning 15: Intercepting CCAI Web Messenger Native `+` Upload Button & Conversational Verification
+- **Issue**: Having an extra custom titlebar button (`📷 Upload Photo`) and a floating card pop-up (`cxas-ai-damage-result-card`) created visual clutter and deviated from standard chat messenger UX where users naturally expect to use the in-chat `+` (`add`) button and receive natural conversational replies.
+- **Root Cause**:
+  1. CCAI Web Messenger `<chat-messenger-user-input>` already renders a native file upload button with `<span class="google-symbols">add</span>` (id `#upload-button`) when `enable-file-upload="true"` is declared.
+  2. When the user picks a file, CCAI fires `chat-messenger-upload-file-selected` and renders a preview thumbnail. When submitted, CCAI invokes `cm.presenter.sendImage(file, query)` and fires `chat-messenger-file-upload-completed`.
+  3. Displaying an overlay modal/card interrupted the conversational flow instead of letting the conversational assistant confirm the replacement naturally within the standard chat transcript.
+- **Mitigation**:
+  1. Hook `cm.presenter.sendImage(file, query)` so when the user selects a photo using the native `+` button and submits, it intercepts the file and routes it directly to `/api/damage/validate` (GCS + Vertex AI Gemini 2.5 Flash).
+  2. Listen to `chat-messenger-file-upload-completed` as a safety net.
+  3. Listen to `chat-messenger-upload-file-selected` and auto-submit after 1.5s if the user does not type or click send.
+  4. Completely remove `#cxas-titlebar-upload-btn` and the `displayDamageCardInChat` pop-up card.
+  5. Inject the verified damage and replacement order (`#DSC-7721-R1`) into the conversational session via `window.sendCxasPrompt(...)`, allowing the agent to naturally confirm details in the chat transcript.
+- **Reference**: [GitHub Issue #18](https://github.com/smfaherty-t/cxas-agy-dsc-demo/issues/18)
+
