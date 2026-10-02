@@ -261,6 +261,86 @@
       });
 
       // ======================================================================
+      // Customer Account State & Email Gating
+      // ======================================================================
+      window.__cxasCustomerEmail = sessionStorage.getItem("cxas_customer_email") || null;
+      let pendingDamageFile = null;
+      let pendingDamageCaption = null;
+
+      function getStoredCustomerEmail() {
+        return window.__cxasCustomerEmail || sessionStorage.getItem("cxas_customer_email") || null;
+      }
+
+      function setStoredCustomerEmail(email) {
+        if (!email) return;
+        const normalized = email.trim().toLowerCase();
+        window.__cxasCustomerEmail = normalized;
+        try {
+          sessionStorage.setItem("cxas_customer_email", normalized);
+        } catch (_) {}
+      }
+
+      // Automatically capture email if typed anywhere in chat or user input
+      function inspectTextForEmail(text) {
+        if (!text || typeof text !== "string") return;
+        const match = text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/);
+        if (match && match[0]) {
+          console.log("[CXAS] Detected account email from user input:", match[0]);
+          setStoredCustomerEmail(match[0]);
+        }
+      }
+
+      function showEmailModal(file, caption) {
+        pendingDamageFile = file;
+        pendingDamageCaption = caption;
+        const modal = document.getElementById("cxas-email-modal");
+        const input = document.getElementById("cxas-modal-email-input");
+        if (modal) {
+          modal.classList.remove("hidden");
+          if (input) {
+            input.value = getStoredCustomerEmail() || "";
+            setTimeout(() => input.focus(), 100);
+          }
+        }
+      }
+
+      function hideEmailModal() {
+        const modal = document.getElementById("cxas-email-modal");
+        if (modal) modal.classList.add("hidden");
+        pendingDamageFile = null;
+        pendingDamageCaption = null;
+      }
+
+      function initEmailModalListeners() {
+        const closeBtn = document.getElementById("cxas-email-modal-close-btn");
+        const cancelBtn = document.getElementById("cxas-email-modal-cancel-btn");
+        const form = document.getElementById("cxas-email-modal-form");
+        const input = document.getElementById("cxas-modal-email-input");
+
+        if (closeBtn) closeBtn.onclick = hideEmailModal;
+        if (cancelBtn) cancelBtn.onclick = hideEmailModal;
+
+        if (form && !form.dataset.bound) {
+          form.dataset.bound = "true";
+          form.onsubmit = function(e) {
+            e.preventDefault();
+            const email = (input?.value || "").trim().toLowerCase();
+            if (!email || !email.includes("@")) {
+              alert("Please enter a valid email address.");
+              return;
+            }
+            setStoredCustomerEmail(email);
+            const fileToProcess = pendingDamageFile;
+            const captionToProcess = pendingDamageCaption;
+            hideEmailModal();
+            if (fileToProcess) {
+              handlePhotoUpload(fileToProcess, captionToProcess);
+            }
+          };
+        }
+      }
+
+      // ======================================================================
       // Multimodal Damage Photo Upload & Gemini AI Vision Analysis Pipeline
       // ======================================================================
       let isUploadingPhoto = false;
@@ -287,6 +367,15 @@
           return;
         }
 
+        // Check if customer email is set; if not, ask first before uploading
+        const customerEmail = getStoredCustomerEmail();
+        if (!customerEmail) {
+          console.log("[CXAS] Customer email required before photo verification. Showing modal.");
+          window.openCxasChat();
+          showEmailModal(file, userCaption);
+          return;
+        }
+
         isUploadingPhoto = true;
         window.openCxasChat();
 
@@ -309,29 +398,49 @@
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({
-                email: "chris@example.com",
-                originalOrderNumber: "DSC-7721",
+                email: customerEmail,
                 imageBase64: base64Data,
                 imageName: file.name,
-                item: "Dr. Carver's Easy Shave Butter (6 oz)",
                 description: userCaption || "Customer uploaded photo of damaged package in transit."
               })
             });
 
             if (res.ok) {
               const data = await res.json();
-              // Communicates verification conversationally with zero pop-up cards
-              const summary = data.damageAnalysis?.summary || "Shave Butter container rupture with product discharge";
-              const repId = data.replacement?.replacementId || "DSC-7721-R1";
-              const address = data.replacement?.shippingAddress || "789 Pine Road, Boulder CO 80302";
+              const analysis = data.damageAnalysis || {};
+              const summary = analysis.summary || "No description available.";
+              const isDamageValid = Boolean(analysis.isValidDamage);
+              const orderNum = data.customer?.orderNumber || "DSC-7721";
+              const accountEmail = data.customer?.email || customerEmail;
 
-              setTimeout(() => {
-                window.sendCxasPrompt(
-                  "I uploaded the damaged product photo. AI vision verified: " + summary + ". Free replacement order #" + repId + " is authorized for delivery to " + address + ". Please confirm."
-                );
-              }, 400);
+              if (isDamageValid && data.replacement) {
+                const repId = data.replacement.replacementId;
+                const address = data.replacement.shippingAddress;
+                const severity = analysis.severity || "Medium";
+                setTimeout(() => {
+                  window.sendCxasPrompt(
+                    `I uploaded a photo of my damaged delivery for account ${accountEmail} (${orderNum}). AI vision verified: ${summary} (${severity} severity). Free replacement order #${repId} has been authorized for rush delivery to ${address}. Please confirm.`
+                  );
+                }, 400);
+              } else {
+                setTimeout(() => {
+                  window.sendCxasPrompt(
+                    `I uploaded a photo for damage inspection on account ${accountEmail} (${orderNum}). AI vision analysis: "${summary}". No physical damage was detected, so a replacement was not authorized. Please explain what was observed and advise what I should do next.`
+                  );
+                }, 400);
+              }
             } else {
-              console.error("[CXAS] Damage validation response error:", await res.text());
+              const errData = await res.json().catch(() => ({}));
+              console.error("[CXAS] Damage validation response error:", errData);
+              if (errData.error === "EMAIL_REQUIRED") {
+                showEmailModal(file, userCaption);
+              } else {
+                setTimeout(() => {
+                  window.sendCxasPrompt(
+                    "I attempted to upload a photo for damage verification, but the inspection service encountered an issue. Could you assist me with reporting damaged items?"
+                  );
+                }, 400);
+              }
             }
           } catch (err) {
             console.error("[CXAS] Damage upload network error:", err);
@@ -359,7 +468,7 @@
           };
         }
 
-        // 2. Hook file selection on the native input inside the chat shadow DOM
+        // 2. Hook file selection and user typing on the native input inside the chat shadow DOM
         const userInput = findInShadow(cm, "chat-messenger-user-input");
         if (userInput && userInput.shadowRoot && !userInput.dataset.photoHooked) {
           userInput.dataset.photoHooked = "true";
@@ -369,6 +478,11 @@
               if (e.target.files && e.target.files[0]) {
                 const pickedFile = e.target.files[0];
                 console.log("[CXAS] Photo chosen via chat input + button:", pickedFile.name);
+                // If email is not yet set, immediately prompt for email
+                if (!getStoredCustomerEmail()) {
+                  showEmailModal(pickedFile, "");
+                  return;
+                }
                 // When chosen via +, if the customer doesn't click Send or type within 1.5s, auto-send
                 setTimeout(() => {
                   const sendBtn = userInput.shadowRoot.querySelector("#send-icon-button");
@@ -382,11 +496,23 @@
               }
             });
           }
+
+          const textarea = userInput.shadowRoot.querySelector("textarea");
+          if (textarea && !textarea.dataset.emailHooked) {
+            textarea.dataset.emailHooked = "true";
+            textarea.addEventListener("input", (e) => {
+              inspectTextForEmail(e.target.value);
+            });
+            textarea.addEventListener("change", (e) => {
+              inspectTextForEmail(e.target.value);
+            });
+          }
         }
       }
 
       // Bind upload triggers once DOM and custom elements load
       function initUploadTriggers() {
+        initEmailModalListeners();
         hookChatMessengerUpload();
 
         const photoInput = document.getElementById("cxas-photo-input");
@@ -403,16 +529,16 @@
         if (cm && !cm.dataset.uploadBound) {
           cm.dataset.uploadBound = "true";
 
-          cm.addEventListener("chat-messenger-upload-file-selected", (e) => {
-            if (e.detail?.file) {
-              console.log("[CXAS] chat-messenger-upload-file-selected:", e.detail.file.name);
-            }
-          });
-
           cm.addEventListener("chat-messenger-file-upload-completed", (e) => {
             if (e.detail?.file) {
               console.log("[CXAS] chat-messenger-file-upload-completed:", e.detail.file.name);
               handlePhotoUpload(e.detail.file, e.detail.query);
+            }
+          });
+
+          cm.addEventListener("chat-messenger-user-message-sent", (e) => {
+            if (e.detail?.text) {
+              inspectTextForEmail(e.detail.text);
             }
           });
 
@@ -541,5 +667,34 @@
         ></chat-messenger-close-button>
       </chat-messenger-container>
     </chat-messenger>
+
+    <!-- Account Verification Modal (Email Required before photo upload) -->
+    <div id="cxas-email-modal" class="cxas-email-modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="cxas-email-modal-title">
+      <div class="cxas-email-modal-card">
+        <div class="cxas-email-modal-header">
+          <span class="cxas-email-modal-badge">Account Verification</span>
+          <button type="button" class="cxas-email-modal-close" id="cxas-email-modal-close-btn" aria-label="Close modal">&times;</button>
+        </div>
+        <h3 id="cxas-email-modal-title">Link Your DSC Account</h3>
+        <p>Please enter the email address on your Dollar Shave Club account to tie your damage photo and replacement to your order:</p>
+        <form id="cxas-email-modal-form">
+          <div class="cxas-email-input-wrapper">
+            <label class="cxas-email-input-label" for="cxas-modal-email-input">Account Email</label>
+            <input
+              type="email"
+              id="cxas-modal-email-input"
+              class="cxas-email-input"
+              placeholder="e.g. chris@example.com"
+              required
+              autocomplete="email"
+            />
+          </div>
+          <div class="cxas-email-modal-buttons">
+            <button type="button" id="cxas-email-modal-cancel-btn" class="cxas-email-modal-cancel">Cancel</button>
+            <button type="submit" id="cxas-email-modal-submit-btn" class="cxas-email-modal-submit">Verify &amp; Inspect Photo</button>
+          </div>
+        </form>
+      </div>
+    </div>
   </body>
 </html>
