@@ -262,6 +262,132 @@ export const OPENAPI_SPEC = {
         }
       }
     },
+    "/api/subscriptions/cadence": {
+      post: {
+        operationId: "updateSubscriptionCadence",
+        summary: "Update subscription delivery cadence/frequency (retention workflow)",
+        description: "Adjusts customer restock frequency (e.g. Every Month, Every 2 Months, Every 3 Months) when customer requests cancellation or cadence change.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["email", "newCadence"],
+                properties: {
+                  email: {
+                    type: "string",
+                    description: "Customer email address."
+                  },
+                  newCadence: {
+                    type: "string",
+                    description: "New subscription delivery frequency (e.g., 'Every 2 Months', 'Every 3 Months')."
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          "200": {
+            description: "Subscription delivery cadence updated successfully",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    message: { type: "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/damage/validate": {
+      post: {
+        operationId: "validateDamagedProductImage",
+        summary: "Validate uploaded photo of damaged product and process free replacement",
+        description: "Analyzes customer uploaded photo of damaged merchandise with AI vision inspection, validates physical damage, and automatically authorizes and queues a free replacement order.",
+        requestBody: {
+          required: true,
+          content: {
+            "application/json": {
+              schema: {
+                type: "object",
+                required: ["email"],
+                properties: {
+                  email: {
+                    type: "string",
+                    description: "Customer email address on file."
+                  },
+                  originalOrderNumber: {
+                    type: "string",
+                    description: "Original order number containing damaged product (optional, defaults to latest order)."
+                  },
+                  imageUrl: {
+                    type: "string",
+                    description: "URL of uploaded photo showing product damage."
+                  },
+                  imageBase64: {
+                    type: "string",
+                    description: "Base64 encoded string of uploaded photo."
+                  },
+                  item: {
+                    type: "string",
+                    description: "Damaged item name (e.g., Dr. Carver's Easy Shave Butter, Razor Handle)."
+                  },
+                  description: {
+                    type: "string",
+                    description: "Customer description of observed damage (e.g., exploded bottle, broken razor collar)."
+                  }
+                }
+              }
+            }
+          }
+        },
+        responses: {
+          "200": {
+            description: "Damage validated and free replacement queued",
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    success: { type: "boolean" },
+                    damageAnalysis: {
+                      type: "object",
+                      properties: {
+                        isValidDamage: { type: "boolean" },
+                        damageType: { type: "string" },
+                        confidence: { type: "number" },
+                        summary: { type: "string" }
+                      }
+                    },
+                    replacement: {
+                      type: "object",
+                      properties: {
+                        replacementId: { type: "string" },
+                        originalOrderNumber: { type: "string" },
+                        shippingAddress: { type: "string" },
+                        items: {
+                          type: "array",
+                          items: { type: "string" }
+                        },
+                        status: { type: "string" }
+                      }
+                    },
+                    message: { type: "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/billing/secure-link": {
       post: {
         operationId: "sendSecurePaymentLink",

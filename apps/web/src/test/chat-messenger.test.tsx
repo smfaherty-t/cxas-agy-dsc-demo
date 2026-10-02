@@ -40,13 +40,27 @@ describe('CX Agent Studio Chat Messenger Trigger Integration', () => {
     (window as unknown as { openCxasChat?: (prompt: string) => void }).openCxasChat = openSpy;
 
     render(<AIAssistantBanner />);
-    const promptButtons = screen.getAllByRole('button', { name: /difference between 4-blade and 6-blade/i });
+    const promptButtons = screen.getAllByRole('button', { name: /track my order/i });
     expect(promptButtons.length).toBeGreaterThan(0);
 
     fireEvent.click(promptButtons[0]);
-    expect(openSpy).toHaveBeenCalledWith("What's the difference between 4-blade and 6-blade?");
+    expect(openSpy).toHaveBeenCalledWith("Can you track my order DSC-8832 for alex@example.com?");
 
     delete (window as unknown as { openCxasChat?: (prompt: string) => void }).openCxasChat;
+  });
+
+  it('triggers window.openDamageReportModal when Damage Report sample prompt is clicked', () => {
+    const modalSpy = vi.fn();
+    (window as unknown as { openDamageReportModal?: () => void }).openDamageReportModal = modalSpy;
+
+    render(<AIAssistantBanner />);
+    const damageButtons = screen.getAllByRole('button', { name: /Shave Butter exploded/i });
+    expect(damageButtons.length).toBeGreaterThan(0);
+
+    fireEvent.click(damageButtons[0]);
+    expect(modalSpy).toHaveBeenCalled();
+
+    delete (window as unknown as { openDamageReportModal?: () => void }).openDamageReportModal;
   });
 
   it('displays accurate lower-left corner copy in AIAssistantBanner', () => {
@@ -166,5 +180,31 @@ describe('CX Agent Studio Lower-Left Bubble Controller Idempotency and Lifecycle
     cm.dispatchEvent(new CustomEvent('chat-messenger-close'));
     expect(cm.classList.contains('dsc-chat-closed')).toBe(true);
     expect(launcher.getAttribute('aria-expanded')).toBe('false');
+  });
+});
+
+describe('DamageReportModal AI Vision Damage Inspection Component', () => {
+  it('renders correctly and allows submitting damage report with sample preset', async () => {
+    const { DamageReportModal } = await import('../components/DamageReportModal');
+    const closeSpy = vi.fn();
+
+    render(<DamageReportModal isOpen={true} onClose={closeSpy} />);
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument();
+    expect(screen.getByText(/Report Damaged Product/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Validate Picture & Queue Free Replacement/i })).toBeInTheDocument();
+
+    // Click sample preset
+    const presetBtn = screen.getByRole('button', { name: /Exploded Shave Butter/i });
+    fireEvent.click(presetBtn);
+
+    // Click submit
+    const submitBtn = screen.getByRole('button', { name: /Validate Picture & Queue Free Replacement/i });
+    fireEvent.click(submitBtn);
+
+    // Verify AI analysis verification appears
+    const verifiedHeading = await screen.findByText(/Physical Damage Verified/i);
+    expect(verifiedHeading).toBeInTheDocument();
+    expect(screen.getByText(/Free Replacement Order/i)).toBeInTheDocument();
   });
 });

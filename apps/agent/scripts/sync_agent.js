@@ -148,6 +148,8 @@ ${wf.instructions.trim().split('\n').map(l => '        ' + l).join('\n')}
     <rule>MANDATORY: Always call tool \`updateShippingAddress\` when a customer provides an updated shipping address.</rule>
     <rule>MANDATORY: Always call tool \`createReplacementOrder\` to ship a free replacement for lost or damaged goods.</rule>
     <rule>MANDATORY: Always call tool \`delayRestockBox\` when a customer asks to delay or push their next Restock Box billing date.</rule>
+    <rule>MANDATORY: Always call tool \`updateSubscriptionCadence\` when a customer requests to change how often they receive restock boxes or during cancellation retention.</rule>
+    <rule>MANDATORY: Always call tool \`validateDamagedProductImage\` when a customer uploads or provides a photo of damaged merchandise to verify the physical defect before replacement.</rule>
     <rule>MANDATORY: Always call tool \`sendSecurePaymentLink\` when payment updates are needed.</rule>
   </tool_guidelines>
 
@@ -177,6 +179,8 @@ ${guardrailsXml}
         'updateShippingAddress',
         'createReplacementOrder',
         'delayRestockBox',
+        'updateSubscriptionCadence',
+        'validateDamagedProductImage',
         'sendSecurePaymentLink'
       ]
     }];

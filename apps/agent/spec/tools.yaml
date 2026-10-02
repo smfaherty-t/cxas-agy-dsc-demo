@@ -31,6 +31,22 @@ tools:
       method: "POST"
       operationId: "delayRestockBox"
 
+  - name: "updateSubscriptionCadence"
+    type: "OPEN_API"
+    description: "Update customer subscription delivery frequency or cadence (e.g. Every Month, Every 2 Months, Every 3 Months) when customer requests cancellation or cadence change."
+    openApiSpec:
+      path: "/api/subscriptions/cadence"
+      method: "POST"
+      operationId: "updateSubscriptionCadence"
+
+  - name: "validateDamagedProductImage"
+    type: "OPEN_API"
+    description: "Analyze customer uploaded photo of damaged merchandise with AI vision inspection, validate physical damage, and automatically authorize and queue a free replacement order."
+    openApiSpec:
+      path: "/api/damage/validate"
+      method: "POST"
+      operationId: "validateDamagedProductImage"
+
   - name: "sendSecurePaymentLink"
     type: "OPEN_API"
     description: "Dispatch secure Shop Pay link via SMS and email to update card credentials safely."
@@ -38,3 +54,5 @@ tools:
       path: "/api/billing/secure-link"
       method: "POST"
       operationId: "sendSecurePaymentLink"
+
+

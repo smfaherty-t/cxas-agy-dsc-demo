@@ -21,20 +21,36 @@ export const AIAssistantBanner: React.FC = () => {
 
   const samplePrompts = [
     {
-      label: "Product Advice",
-      text: "What's the difference between 4-blade and 6-blade?"
+      label: "Order Status",
+      badge: "COMMON INQUIRY",
+      text: "Can you track my order DSC-8832 for alex@example.com?"
     },
     {
-      label: "Alex Vance Scenario",
-      text: "Can you track my order DSC-8832 and check my subscription date?"
+      label: "Change Address",
+      badge: "COMMON INQUIRY",
+      text: "I need to update my shipping address to 123 Main St, Austin TX 78701."
     },
     {
-      label: "Jamie Cole Scenario",
-      text: "My package DSC-9104 has no carrier updates for 5 days. Can I get a replacement to my new address?"
+      label: "Order Arrived at Wrong Address",
+      badge: "COMMON INQUIRY",
+      text: "My order arrived at the wrong address! Can you help reship it?"
     },
     {
-      label: "Chris Wright Scenario",
-      text: "My Shave Butter was damaged in shipment DSC-7721. Can I get a replacement and update my payment method?"
+      label: "Cancel Retention & Cadence",
+      badge: "FLEXIBLE MEMBERSHIP",
+      text: "I want to cancel my subscription. Can I delay my next box or change delivery frequency instead?"
+    },
+    {
+      label: "Report Damaged Product",
+      badge: "AI VISION PHOTO INSPECTION",
+      text: "My Shave Butter exploded in transit. Here is a picture for replacement.",
+      action: () => {
+        if (typeof (window as unknown as { openDamageReportModal?: () => void }).openDamageReportModal === 'function') {
+          (window as unknown as { openDamageReportModal: () => void }).openDamageReportModal();
+        } else {
+          openChatWithPrompt("My Shave Butter exploded in transit. I want to upload a picture for replacement.");
+        }
+      }
     }
   ];
 
@@ -76,7 +92,7 @@ export const AIAssistantBanner: React.FC = () => {
                 <button
                   key={idx}
                   type="button"
-                  onClick={() => openChatWithPrompt(item.text)}
+                  onClick={() => item.action ? item.action() : openChatWithPrompt(item.text)}
                   className="flex items-center justify-between gap-3 text-left text-xs sm:text-sm px-4 py-3 rounded-xl bg-stone-900 hover:bg-stone-800 border border-stone-700/80 text-stone-200 hover:text-white transition-all cursor-pointer group shadow-sm hover:border-orange-500/60"
                   aria-label={item.text}
                 >

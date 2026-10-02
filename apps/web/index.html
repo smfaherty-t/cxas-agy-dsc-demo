@@ -28,10 +28,7 @@
           launcher.setAttribute("aria-expanded", "true");
         }
         if (promptText && cm) {
-          const input = cm.querySelector("chat-messenger-user-input");
-          if (input && typeof input.setInput === "function") {
-            input.setInput(promptText);
-          }
+          window.sendCxasPrompt(promptText);
         }
       };
 
@@ -54,6 +51,47 @@
         } else {
           window.closeCxasChat();
         }
+      };
+
+      window.sendCxasPrompt = function(promptText) {
+        const cm = document.querySelector("chat-messenger");
+        const launcher = document.getElementById("cxas-bubble-launcher");
+        if (cm) {
+          cm.classList.remove("dsc-chat-closed");
+        }
+        if (launcher) {
+          launcher.setAttribute("aria-expanded", "true");
+        }
+
+        const wc = document.getElementById("cxas-welcome-card");
+        if (wc) wc.classList.add("cxas-welcome-minimized");
+
+        setTimeout(() => {
+          if (window.chatSdk && typeof window.chatSdk.sendMessage === "function") {
+            try { window.chatSdk.sendMessage(promptText); return; } catch (_) {}
+          }
+          if (cm && typeof cm.sendQuery === "function") {
+            try { cm.sendQuery(promptText); return; } catch (_) {}
+          }
+          const userInput = cm ? cm.querySelector("chat-messenger-user-input") : null;
+          if (userInput) {
+            if (typeof userInput.setInput === "function") {
+              userInput.setInput(promptText);
+            }
+            const root = userInput.shadowRoot || userInput;
+            const sendBtn = root.querySelector("button.send-button, button[aria-label*='Send'], button[type='submit'], .send-icon");
+            if (sendBtn) {
+              sendBtn.click();
+            } else {
+              const textarea = root.querySelector("textarea, input");
+              if (textarea) {
+                textarea.value = promptText;
+                textarea.dispatchEvent(new Event("input", { bubbles: true }));
+                textarea.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", keyCode: 13, which: 13, bubbles: true }));
+              }
+            }
+          }
+        }, 120);
       };
 
       // 2. Initialize controller exactly once
@@ -99,8 +137,45 @@
         }
 
         patchShadow();
+        initWelcomeButtons();
         if (window.customElements && window.customElements.whenDefined) {
-          window.customElements.whenDefined("chat-messenger").then(patchShadow);
+          window.customElements.whenDefined("chat-messenger").then(() => {
+            patchShadow();
+            initWelcomeButtons();
+          });
+        }
+      }
+
+      function initWelcomeButtons() {
+        const card = document.getElementById("cxas-welcome-card");
+        if (!card) return;
+        const buttons = card.querySelectorAll(".cxas-quick-btn");
+        buttons.forEach((btn) => {
+          if (btn.dataset.initialized) return;
+          btn.dataset.initialized = "true";
+          btn.addEventListener("click", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const prompt = btn.getAttribute("data-cxas-prompt");
+            const action = btn.getAttribute("data-cxas-action");
+            if (action === "report-damage") {
+              if (typeof window.openDamageReportModal === "function") {
+                window.openDamageReportModal();
+              } else {
+                window.sendCxasPrompt("I need to report a damaged product and upload a photo.");
+              }
+            } else if (prompt) {
+              window.sendCxasPrompt(prompt);
+            }
+          });
+        });
+
+        const resetBtn = document.querySelector("chat-reset-session-button");
+        if (resetBtn && !resetBtn.dataset.resetBound) {
+          resetBtn.dataset.resetBound = "true";
+          resetBtn.addEventListener("click", function() {
+            card.classList.remove("cxas-welcome-minimized");
+          });
         }
       }
 
@@ -203,6 +278,37 @@
         chat-title-icon="https://gstatic.com/dialogflow-console/common/assets/ccai-favicons/conversational_agents.png"
         enable-file-upload
       >
+        <!-- Welcome Greeting & Common Inquiries Quick Actions Card -->
+        <div id="cxas-welcome-card" class="cxas-welcome-card" role="region" aria-label="Welcome and quick options">
+          <div class="cxas-welcome-header">
+            <div class="cxas-welcome-badge">DOLLAR SHAVE CLUB ASSISTANT</div>
+            <div class="cxas-welcome-title">👋 Welcome to Dollar Shave Club!</div>
+            <div class="cxas-welcome-subtitle">How can we help you today? Choose a common inquiry below or type your message:</div>
+          </div>
+          <div class="cxas-quick-buttons">
+            <button type="button" class="cxas-quick-btn" data-cxas-prompt="Check order status">
+              <span class="cxas-quick-icon">📦</span>
+              <span>Order status</span>
+            </button>
+            <button type="button" class="cxas-quick-btn" data-cxas-prompt="I need to change my shipping address">
+              <span class="cxas-quick-icon">📍</span>
+              <span>Change address</span>
+            </button>
+            <button type="button" class="cxas-quick-btn" data-cxas-prompt="My order arrived at the wrong address">
+              <span class="cxas-quick-icon">⚠️</span>
+              <span>Order arrived at wrong address</span>
+            </button>
+            <button type="button" class="cxas-quick-btn" data-cxas-action="report-damage">
+              <span class="cxas-quick-icon">📸</span>
+              <span>Report damaged product</span>
+            </button>
+            <button type="button" class="cxas-quick-btn" data-cxas-prompt="I want to cancel my subscription">
+              <span class="cxas-quick-icon">🛑</span>
+              <span>Cancel / Pause subscription</span>
+            </button>
+          </div>
+        </div>
+
         <chat-reset-session-button
           slot="titlebar-actions"
           title-text="Start new chat"

@@ -78,7 +78,7 @@ let scenariosData;
 try {
   scenariosData = JSON.parse(fs.readFileSync(scenariosPath, 'utf8'));
   assert(Array.isArray(scenariosData.scenarios), 'Scenarios array defined');
-  assert(scenariosData.scenarios.length === 3, `Expected 3 customer scenarios (found ${scenariosData.scenarios.length})`);
+  assert(scenariosData.scenarios.length >= 3, `Expected at least 3 customer scenarios (found ${scenariosData.scenarios.length})`);
 
   for (const sc of scenariosData.scenarios) {
     assert(!!sc.id && !!sc.customer && !!sc.title, `Scenario ${sc.id} for ${sc.customer} is fully titled`);
@@ -116,6 +116,11 @@ try {
     assert(!!tc.id && !!tc.input, `Golden case ${tc.id} has input utterance`);
     if (tc.expected_tool) {
       assert(declaredTools.has(tc.expected_tool), `Golden case ${tc.id} expected tool "${tc.expected_tool}" is valid`);
+    }
+    if (Array.isArray(tc.expected_tools)) {
+      for (const toolName of tc.expected_tools) {
+        assert(declaredTools.has(toolName), `Golden case ${tc.id} expected tool "${toolName}" is valid`);
+      }
     }
   }
 } catch (e) {

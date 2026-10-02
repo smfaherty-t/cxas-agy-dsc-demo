@@ -95,7 +95,58 @@ apiRouter.post('/subscriptions/delay', (req: Request, res: Response) => {
   res.json(result);
 });
 
-// 5. Dispatch Secure Payment Link
+// 5. Update Subscription Cadence / Delivery Frequency (Retention Workflow)
+apiRouter.post('/subscriptions/cadence', (req: Request, res: Response) => {
+  const { email, newCadence } = req.body;
+  if (!email || !newCadence) {
+    res.status(400).json({ error: 'Missing email or newCadence parameter.' });
+    return;
+  }
+
+  const result = DscService.updateSubscriptionCadence(email, newCadence);
+  if (!result.success) {
+    res.status(404).json(result);
+    return;
+  }
+  res.json(result);
+});
+
+// 6. Validate Damaged Product Photo & Process Free Replacement
+apiRouter.post('/damage/validate', (req: Request, res: Response) => {
+  const { email, originalOrderNumber, imageUrl, imageBase64, imageName, item, description } = req.body;
+  if (!email) {
+    res.status(400).json({ error: 'Missing email parameter.' });
+    return;
+  }
+
+  const result = DscService.validateDamageAndReplace({
+    email,
+    originalOrderNumber,
+    imageUrl,
+    imageBase64,
+    imageName,
+    item,
+    description
+  });
+
+  if (!result.success) {
+    res.status(400).json(result);
+    return;
+  }
+  res.json(result);
+});
+
+// 7. Get All Damage Inspection Reports
+apiRouter.get('/damage/reports', (_req: Request, res: Response) => {
+  const reports = db.getDamageReports();
+  res.json({
+    total: reports.length,
+    reports,
+    timestamp: new Date().toISOString()
+  });
+});
+
+// 8. Dispatch Secure Payment Link
 apiRouter.post('/billing/secure-link', (req: Request, res: Response) => {
   const { email, channel } = req.body;
   if (!email) {

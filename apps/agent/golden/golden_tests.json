@@ -60,6 +60,38 @@
       "input": "I need to change my credit card before my next box. chris@example.com",
       "expected_tool": "sendSecurePaymentLink",
       "expected_guardrail_rule": "Do not collect credit card credentials directly over chat."
+    },
+    {
+      "id": "GT-RETENTION-007",
+      "name": "Subscription Cancellation Retention & Cadence Modification",
+      "input": "I want to cancel my membership. Switch me to every 3 months instead. alex@example.com",
+      "expected_tool": "updateSubscriptionCadence",
+      "expected_arguments": {
+        "email": "alex@example.com",
+        "newCadence": "Every 3 Months"
+      },
+      "expected_guardrail_rule": "Always offer delay or cadence change on cancellation requests."
+    },
+    {
+      "id": "GT-PHOTO-DMG-008",
+      "name": "Damaged Product Photo Inspection & Auto Replacement",
+      "input": "Here is the picture of my cracked razor handle: razor_crack.jpg. chris@example.com",
+      "expected_tool": "validateDamagedProductImage",
+      "expected_arguments": {
+        "email": "chris@example.com",
+        "imageName": "razor_crack.jpg"
+      },
+      "expected_outcome": "Verify damage and automatically queue free replacement order."
+    },
+    {
+      "id": "GT-WRONG-ADDR-009",
+      "name": "Order Arrived at Wrong Address Resolution",
+      "input": "My order arrived at the wrong address. Please reship to 999 New Street, Seattle WA 98102. jamie@example.com",
+      "expected_tools": ["updateShippingAddress", "createReplacementOrder"],
+      "expected_arguments": {
+        "email": "jamie@example.com",
+        "newAddress": "999 New Street, Seattle WA 98102"
+      }
     }
   ]
 }

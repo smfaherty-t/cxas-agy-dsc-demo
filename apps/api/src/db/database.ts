@@ -41,11 +41,27 @@ export interface ReplacementOrder {
   status: 'QUEUED' | 'SHIPPED';
 }
 
+export interface DamageInspectionReport {
+  id: string;
+  customerId: string;
+  email: string;
+  originalOrderNumber: string;
+  damagedItem: string;
+  imageUrl?: string;
+  isValidDamage: boolean;
+  damageType: string;
+  confidence: number;
+  analysisSummary: string;
+  replacementId?: string;
+  inspectedAt: string;
+}
+
 export interface DatabaseSchema {
   customers: Customer[];
   orders: Order[];
   subscriptions: Subscription[];
   replacements: ReplacementOrder[];
+  damageReports: DamageInspectionReport[];
   secureLinksDispatched: Array<{
     id: string;
     customerId: string;
@@ -481,6 +497,7 @@ const INITIAL_DATA: DatabaseSchema = {
     }
   ],
   replacements: [],
+  damageReports: [],
   secureLinksDispatched: []
 };
 
@@ -574,6 +591,25 @@ class DatabaseStore {
       sub.nextBillDate = newBillDate;
     }
     return sub;
+  }
+
+  public updateSubscriptionCadence(customerId: string, newCadence: string): Subscription | undefined {
+    const sub = this.findSubscriptionByCustomerId(customerId);
+    if (sub) {
+      sub.cadence = newCadence;
+    }
+    return sub;
+  }
+
+  public recordDamageReport(report: DamageInspectionReport): void {
+    if (!this.data.damageReports) {
+      this.data.damageReports = [];
+    }
+    this.data.damageReports.push(report);
+  }
+
+  public getDamageReports(): DamageInspectionReport[] {
+    return this.data.damageReports || [];
   }
 
   public recordSecureLinkDispatch(record: {

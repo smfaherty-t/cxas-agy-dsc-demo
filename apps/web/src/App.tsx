@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { CartProvider } from './context/CartContext';
 import { Header } from './components/Header';
 import { Hero } from './components/Hero';
@@ -13,8 +13,19 @@ import { ReadyBanner } from './components/ReadyBanner';
 import { StickyPDPBanner } from './components/StickyPDPBanner';
 import { CartDrawer } from './components/CartDrawer';
 import { Footer } from './components/Footer';
+import { DamageReportModal } from './components/DamageReportModal';
 
 export const App: React.FC = () => {
+  const [isDamageModalOpen, setIsDamageModalOpen] = useState(false);
+
+  useEffect(() => {
+    (window as unknown as { openDamageReportModal: () => void }).openDamageReportModal = () => {
+      setIsDamageModalOpen(true);
+    };
+    (window as unknown as { closeDamageReportModal: () => void }).closeDamageReportModal = () => {
+      setIsDamageModalOpen(false);
+    };
+  }, []);
   return (
     <CartProvider>
       <div className="min-h-screen bg-white text-stone-900 font-sans selection:bg-[#FE5000] selection:text-white flex flex-col">
@@ -56,6 +67,12 @@ export const App: React.FC = () => {
 
         {/* Slide-out Cart Drawer with Free Shipping Meter */}
         <CartDrawer />
+
+        {/* AI Damage Visual Inspection & Replacement Modal */}
+        <DamageReportModal
+          isOpen={isDamageModalOpen}
+          onClose={() => setIsDamageModalOpen(false)}
+        />
 
         {/* Comprehensive Storefront Footer */}
         <Footer />

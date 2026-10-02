@@ -135,4 +135,64 @@ describe('Dollar Shave Club Customer Service API & Services', () => {
       expect(db.getDispatchedLinks().length).toBe(1);
     });
   });
+
+  describe('Use Case 4: Subscription Cancellation Retention & Cadence Adjustment', () => {
+    it('should update subscription delivery cadence to Every 3 Months when customer considers cancellation', () => {
+      const result = DscService.updateSubscriptionCadence('alex@example.com', 'Every 3 Months');
+      expect(result.success).toBe(true);
+      expect(result.subscription?.cadence).toBe('Every 3 Months');
+      expect(result.message).toContain('updated to \'Every 3 Months\'');
+
+      // Verify persisted in database
+      const customer = db.findCustomerByEmail('alex@example.com');
+      const sub = db.findSubscriptionByCustomerId(customer!.id);
+      expect(sub?.cadence).toBe('Every 3 Months');
+    });
+
+    it('should reject cadence update for non-existent customer', () => {
+      const result = DscService.updateSubscriptionCadence('nonexistent@example.com', 'Every 2 Months');
+      expect(result.success).toBe(false);
+      expect(result.message).toContain('not found');
+    });
+  });
+
+  describe('Use Case 5: Damaged Product Photo Upload & Visual Analysis Validation', () => {
+    it('should analyze uploaded photo, validate damage, and queue free replacement', () => {
+      const result = DscService.validateDamageAndReplace({
+        email: 'chris@example.com',
+        originalOrderNumber: 'DSC-7721',
+        item: "Dr. Carver's Easy Shave Butter",
+        description: 'Bottle arrived ruptured with shave butter leaking all over the box',
+        imageName: 'exploded_butter_photo.jpg'
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.damageAnalysis.isValidDamage).toBe(true);
+      expect(result.damageAnalysis.damageType).toBe('EXPLODED_CONTAINER');
+      expect(result.damageAnalysis.confidence).toBeGreaterThan(0.95);
+      expect(result.damageAnalysis.summary).toContain('Shave Butter container rupture');
+      expect(result.replacement?.replacementId).toContain('DSC-7721');
+      expect(result.replacement?.status).toBe('QUEUED');
+
+      // Verify damage report recorded in database
+      const reports = db.getDamageReports();
+      expect(reports.length).toBeGreaterThan(0);
+      expect(reports[0].damageType).toBe('EXPLODED_CONTAINER');
+      expect(reports[0].isValidDamage).toBe(true);
+    });
+
+    it('should analyze broken razor handle photo and authorize replacement', () => {
+      const result = DscService.validateDamageAndReplace({
+        email: 'jamie@example.com',
+        item: 'Razor Handle',
+        description: 'Handle collar cracked during transit',
+        imageBase64: 'data:image/jpeg;base64,samplebase64data'
+      });
+
+      expect(result.success).toBe(true);
+      expect(result.damageAnalysis.isValidDamage).toBe(true);
+      expect(result.damageAnalysis.damageType).toBe('BROKEN_HARDWARE');
+      expect(result.replacement?.status).toBe('QUEUED');
+    });
+  });
 });
